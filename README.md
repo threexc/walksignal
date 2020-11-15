@@ -19,3 +19,10 @@ For example,
 
 In both cases, one of either --compare or --combine is required, as is
 --list.
+
+
+## TODO
+
+- Clean up plotting code
+- Add more command-line options
+- Start work on a GUI with more display features
