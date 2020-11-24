@@ -1,4 +1,4 @@
-# ociplot
+# walksignal
 Plot OpenCellID data on street maps and other images
 
 Example:
@@ -6,7 +6,7 @@ Example:
 ![Downtown Ottawa](example.png?raw=true)
 
 
-## Usage
+## Usage (Needs Fixing)
 
 To display one or more data sets as separate charts:
 `python3 ociplot.py --compare --list [file1] [file2] ... [fileN]`
