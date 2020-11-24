@@ -6,16 +6,16 @@ Example:
 ![Downtown Ottawa](example.png?raw=true)
 
 
-## Usage (Needs Fixing)
+## Usage
 
 To display one or more data sets as separate charts:
-`python3 ociplot.py --compare --list [file1] [file2] ... [fileN]`
+`com_plot --compare --list [file1] [file2] ... [fileN]`
 
 To combine all data into a single plot:
-`python3 ociplot.py --combine --list [file1] [file2] ... [fileN]`
+`com_plot --combine --list [file1] [file2] ... [fileN]`
 
 For example,
-`python3 ociplot.py --compare --list /data/laycolyoc/Open*`
+`com_plot --compare --list /data/laycolyoc/Open*`
 
 In both cases, one of either --compare or --combine is required, as is
 --list.
