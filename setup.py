@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="walksignal-threexc"
+    name="walksignal",
     version="0.0.1",
     author="Trevor Gamblin",
     author_email="tvgamblin@gmail.com",
