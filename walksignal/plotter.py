@@ -62,20 +62,3 @@ def combine_plots(files):
     plt.colorbar(plot, cax = cax)
 
     plt.show()
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--combine", action="store_true")
-    group.add_argument("--compare", action="store_true")
-    parser.add_argument("--list", nargs='+', required=True)
-    results = parser.parse_args()
-
-    print(results.list)
-    print(type(results.list))
-
-    if results.combine == True:
-        combine_plots(results.list)
-    else:
-        compare_plots(results.list)
-
