@@ -43,6 +43,12 @@ class DataSet:
 
         # get device speed
         self.speed_values = np.array(self.data_matrix[1:,9], dtype=float)
+        self.mcc = np.array(self.data_matrix[1:,0], dtype=int)
+        self.mnc = np.array(self.data_matrix[1:,1], dtype=int)
+        self.cellid = np.array(self.data_matrix[1:,3], dtype=int)
+        self.rating = np.array(self.data_matrix[1:,8], dtype=float)
+        self.direction = np.array(self.data_matrix[1:,10], dtype=float)
+        self.timing_advance = np.array(self.data_matrix[1:,12], dtype=int)
 
         # get access types and convert them to usable format
         self.access_type_range = np.array(self.data_matrix[1:,11])
@@ -58,6 +64,17 @@ class DataSet:
                 self.access_type_color_codes[x] = "k"
             else:
                 self.access_type_color_codes[x] = "y"
+        self.hash = {}
+        self.hash['time'] = self.normalized_time_range
+        self.hash['signal_strength'] = self.signal_range
+        self.hash['pcis'] = self.pcis
+        self.hash['speed'] = self.speed_values
+        self.hash['mcc'] = self.mcc
+        self.hash['mnc'] = self.mnc
+        self.hash['cellid'] = self.cellid
+        self.hash['rating'] = self.rating
+        self.hash['direction'] = self.direction
+        self.hash['advance'] = self.timing_advance
 
 class SignalPlotter:
 

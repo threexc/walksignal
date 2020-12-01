@@ -14,7 +14,6 @@ def compare_plots(files):
     axs={}
     for i, datafile in enumerate(files):
         dataset = walkreader.DataSet(datafile)
-        #dataset.read_data()
         plotter = walkreader.SignalPlotter(dataset)
         map_file = plt.imread(plotter.map_file)
         map_bbox = (-75.70629, -75.69213, 45.41321, 45.41976)
