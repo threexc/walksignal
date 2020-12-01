@@ -15,6 +15,7 @@ class DataSet:
        self.data_path = self.data_file.rsplit('/', 1)[0]
        self.dataset_name = self.data_path.rsplit('/', 1)[1]
        self.map_path = self.data_path + "/map.png"
+       self.read_data()
 
     def read_data(self):
         with open(self.data_file) as csv_file:

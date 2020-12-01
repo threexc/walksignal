@@ -7,15 +7,15 @@ import argparse
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from ocireader import *
+import walksignal.walkreader as walkreader
 
 def compare_plots(files):
     figs={}
     axs={}
     for i, datafile in enumerate(files):
-        dataset = ocireader.DataSet(datafile)
-        dataset.read_data()
-        plotter = ocireader.SignalPlotter(dataset)
+        dataset = walkreader.DataSet(datafile)
+        #dataset.read_data()
+        plotter = walkreader.SignalPlotter(dataset)
         map_file = plt.imread(plotter.map_file)
         map_bbox = (-75.70629, -75.69213, 45.41321, 45.41976)
         ax = plt.subplot(len(files), 1, i+1)
@@ -39,9 +39,9 @@ def combine_plots(files):
     signal_data = np.array([])
 
     for datafile in files:
-        dataset = ocireader.DataSet(datafile)
-        dataset.read_data()
-        plotter = ocireader.SignalPlotter(dataset)
+        dataset = walkreader.DataSet(datafile)
+        #dataset.read_data()
+        plotter = walkreader.SignalPlotter(dataset)
         lon_data = np.concatenate([lon_data, plotter.spatial_lon])
         lat_data = np.concatenate([lat_data, plotter.spatial_lat])
         signal_data = np.concatenate([signal_data, plotter.signal_range])

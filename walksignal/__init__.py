@@ -1,2 +1,2 @@
-from .reader import *
-from .plotter import *
+from .walkreader import *
+from .walkplotter import *
