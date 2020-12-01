@@ -15,15 +15,11 @@ class DataSet:
        self.data_path = self.data_file.rsplit('/', 1)[0]
        self.dataset_name = self.data_path.rsplit('/', 1)[1]
        self.map_path = self.data_path + "/map.png"
-       self.verbose = False
 
-    def read_data(self, data=None):
-        if data == None:
-            with open(self.data_file) as csv_file:
-                self.data = list(csv.reader(csv_file, delimiter=","))
-                csv_file.close()
-        else:
-            self.data = data
+    def read_data(self):
+        with open(self.data_file) as csv_file:
+            self.data = list(csv.reader(csv_file, delimiter=","))
+            csv_file.close()
         self.data_matrix = np.array(self.data)
         
         # Determine start and end times of test and get a time range for the trip
@@ -61,16 +57,6 @@ class DataSet:
                 self.access_type_color_codes[x] = "k"
             else:
                 self.access_type_color_codes[x] = "y"
-
-        if self.verbose is True:
-            print(self.start_time)
-            print(self.end_time)
-            print(self.normalized_time_range)
-            print(self.signal_range)
-            print(self.pcis)
-            print(self.speed_values)
-            print(self.access_type_color_codes)
-            print(self.access_type_range)
 
 class SignalPlotter:
 
