@@ -64,3 +64,21 @@ def combine_plots(files):
     cbar.ax.set_ylabel("Signal Amplitude (dBm)", rotation=270)
 
     plt.show()
+
+def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_title="X vs Y"):
+    scatter = plt.scatter(x_axis, y_axis, c = annotation)
+    if annotation is not None:
+        for element in range(len(x_axis)):
+            if annotation[element] is not None:
+                plt.text(x_axis[element], y_axis[element], str(annotation[element]))
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.grid()
+    lte = mpatches.Patch(color="r", label="LTE")
+    lte_plus = mpatches.Patch(color="b", label="LTE+")
+    umts = mpatches.Patch(color="g", label="UMTS")
+    hspa_plus = mpatches.Patch(color="k", label="HSPA+")
+    plt.legend(handles=[lte, lte_plus, umts, hspa_plus])
+    plt.suptitle(plot_title)
+    plt.show()
+
