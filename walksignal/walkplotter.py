@@ -66,7 +66,7 @@ def combine_plots(files):
     plt.show()
 
 def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_title="X vs Y"):
-    scatter = plt.scatter(x_axis, y_axis, c = annotation)
+    scatter = plt.scatter(x_axis, y_axis, c = annotation, s = 2)
     if annotation is not None:
         for element in range(len(x_axis)):
             if annotation[element] is not None:
