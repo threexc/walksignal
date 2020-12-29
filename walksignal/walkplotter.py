@@ -39,7 +39,6 @@ def combine_plots(files):
 
     for datafile in files:
         dataset = walkreader.DataSet(datafile)
-        #dataset.read_data()
         plotter = walkreader.SignalPlotter(dataset)
         lon_data = np.concatenate([lon_data, plotter.spatial_lon])
         lat_data = np.concatenate([lat_data, plotter.spatial_lat])
@@ -59,9 +58,13 @@ def combine_plots(files):
     plt.ylabel("Latitude", rotation=90)
     plt.xlabel("Longitude", rotation=0)
     ax = plt.axes()
+
+    # Make sure to prevent lat/long from being displayed in scientific
+    # notation
+    ax.ticklabel_format(useOffset=False)
     cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     cbar = plt.colorbar(plot, cax = cax)
-    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270)
+    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=25)
 
     plt.show()
 
