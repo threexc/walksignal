@@ -57,6 +57,7 @@ def combine_plots(files):
     plt.ylim(map_bbox[2], map_bbox[3])
     plt.ylabel("Latitude", rotation=90)
     plt.xlabel("Longitude", rotation=0)
+    plt.title("Signal Power vs Position")
     ax = plt.axes()
 
     # Make sure to prevent lat/long from being displayed in scientific
@@ -64,7 +65,7 @@ def combine_plots(files):
     ax.ticklabel_format(useOffset=False)
     cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     cbar = plt.colorbar(plot, cax = cax)
-    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=25)
+    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
 
     plt.show()
 
