@@ -2,18 +2,18 @@
 import csv
 import sys
 import fileinput
+import os.path
 
 def process_file(filename):
-    with open(filename, 'r') as f_input, open(filename + ".pruned", 'w') as f_output:
-        csv_output = csv.writer(f_output, delimiter = ',')
+    if not os.path.exists("{0}.pruned".format(filename)) and "pruned" not in filename:
+        with open(filename, 'r') as f_input, open(filename + ".pruned", 'w') as f_output:
+            csv_output = csv.writer(f_output, delimiter = ',')
 
-        for row in csv.reader(f_input, delimiter = ','):
-            if any(c.isdigit() for c in row[12]):
-                csv_output.writerow(row)
-            #if row[12].isspace() is False:
-            #    csv_output.writerow(row)
-
-
+            for row in csv.reader(f_input, delimiter = ','):
+                if any(c.isdigit() for c in row[12]):
+                    csv_output.writerow(row)
+    else:
+        print("{0} already pruned".format(filename))
 
 if __name__ == "__main__":
     for filename in sys.argv[1:]:
