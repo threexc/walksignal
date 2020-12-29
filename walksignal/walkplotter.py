@@ -61,7 +61,7 @@ def combine_plots(files):
     ax = plt.axes()
     cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     cbar = plt.colorbar(plot, cax = cax)
-    cbar.ax.set_ylabel("Signal Amplitude (dBm)", rotation=270)
+    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270)
 
     plt.show()
 

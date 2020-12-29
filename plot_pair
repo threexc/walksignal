@@ -22,10 +22,7 @@ for datafile in results.list:
           plotter = ws.walkreader.SignalPlotter(dataset)
           if dataset.hash[results.x_axis] is not None:
               x_array = np.concatenate([x_array, dataset.hash[results.x_axis]])
-              print(dataset.hash[results.x_axis])
           if dataset.hash[results.y_axis] is not None:
               y_array = np.concatenate([y_array, dataset.hash[results.y_axis]])
 
-print(x_array)
-print(y_array)
-ws.walkplotter.plot_data(x_array, y_array)
+ws.walkplotter.plot_data(x_array, y_array, x_label=results.x_axis, y_label=results.y_axis, plot_title="{0} vs {1}".format(results.y_axis, results.x_axis))
