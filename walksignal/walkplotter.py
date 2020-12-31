@@ -78,6 +78,12 @@ def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_ti
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.grid()
+
+    # Make sure that the axes don't display scientific notation. Need a
+    # cleaner fix for this
+    plt.gcf().axes[0].xaxis.get_major_formatter().set_scientific(False)
+    plt.gcf().axes[0].yaxis.get_major_formatter().set_scientific(False)
+
     lte = mpatches.Patch(color="r", label="LTE")
     lte_plus = mpatches.Patch(color="b", label="LTE+")
     umts = mpatches.Patch(color="g", label="UMTS")
