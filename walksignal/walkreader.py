@@ -31,9 +31,8 @@ class DataSet:
         self.spatial_lat = np.array(self.data_matrix[1:,4], dtype=float)
         self.spatial_lon = np.array(self.data_matrix[1:,5], dtype=float)
 
-        # hard-code the box properties for the map, since it'll be the
-        # same one every time
-        self.map_bbox = (-75.70629, -75.69213, 45.41321, 45.41976)
+        # Generate the bbox for the map
+        self.map_bbox = self.get_bbox()
         
         # get signal strength in dBm
         self.signal_range = np.array(self.data_matrix[1:,6], dtype=float)
@@ -75,6 +74,13 @@ class DataSet:
         self.hash['rating'] = self.rating
         self.hash['direction'] = self.direction
         self.hash['advance'] = self.timing_advance
+
+    def get_bbox(self):
+        min_lat = min(self.spatial_lat)
+        max_lat = max(self.spatial_lat)
+        min_lon = min(self.spatial_lon)
+        max_lon = max(self.spatial_lon)
+        return (min_lat, max_lat, min_lon, max_lon)
 
 class SignalPlotter:
 
