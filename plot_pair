@@ -18,11 +18,11 @@ x_array = np.array([])
 y_array = np.array([])
 
 for datafile in results.list:
-          dataset = ws.walkreader.DataSet(datafile)
-          plotter = ws.walkreader.SignalPlotter(dataset)
-          if dataset.hash[results.x_axis] is not None:
-              x_array = np.concatenate([x_array, dataset.hash[results.x_axis]])
-          if dataset.hash[results.y_axis] is not None:
-              y_array = np.concatenate([y_array, dataset.hash[results.y_axis]])
+    dataset = ws.walkreader.DataSet(datafile)
+    plotter = ws.walkreader.SignalPlotter(dataset)
+    if dataset.hash[results.x_axis] is not None:
+        x_array = np.concatenate([x_array, dataset.hash[results.x_axis]])
+    if dataset.hash[results.y_axis] is not None:
+        y_array = np.concatenate([y_array, dataset.hash[results.y_axis]])
 
 ws.walkplotter.plot_data(x_array, y_array, x_label=results.x_axis, y_label=results.y_axis, plot_title="{0} vs {1}".format(results.y_axis, results.x_axis))
