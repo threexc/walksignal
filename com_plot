@@ -9,7 +9,6 @@ parser.add_argument("--list", nargs='+', required=True)
 results = parser.parse_args() 
 
 print(results.list) 
-print(type(results.list)) 
 
 if results.combine == True: 
 	combine_plots(results.list) 
