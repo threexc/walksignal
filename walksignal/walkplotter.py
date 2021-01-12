@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import time
 import argparse
+import requests
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -36,6 +37,9 @@ def combine_plots(files):
     lon_data = np.array([])
     lat_data = np.array([])
     signal_data = np.array([])
+    dataset = None
+    plotter = None
+    map_bbox = None
 
     for datafile in files:
         dataset = walkreader.DataSet(datafile)
@@ -45,7 +49,7 @@ def combine_plots(files):
         signal_data = np.concatenate([signal_data, plotter.signal_range])
     
     map_file = plt.imread(plotter.map_file)
-    map_bbox = (-75.70629, -75.69213, 45.41321, 45.41976)
+    map_bbox = dataset.map_bbox[0]
     fig = plt.figure()
     im = plt.imshow(map_file, zorder=0, extent = map_bbox, aspect = "equal")
     cm = plt.cm.get_cmap('gist_heat')
@@ -91,4 +95,3 @@ def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_ti
     plt.legend(handles=[lte, lte_plus, umts, hspa_plus])
     plt.suptitle(plot_title)
     plt.show()
-

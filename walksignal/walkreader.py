@@ -15,6 +15,7 @@ class DataSet:
        self.data_path = self.data_file.rsplit('/', 1)[0]
        self.dataset_name = self.data_path.rsplit('/', 1)[1]
        self.map_path = self.data_path + "/map.png"
+       self.bbox_path = self.data_path + "/bbox.txt"
        self.read_data()
 
     def read_data(self):
@@ -76,11 +77,10 @@ class DataSet:
         self.hash['advance'] = self.timing_advance
 
     def get_bbox(self):
-        min_lat = min(self.spatial_lat)
-        max_lat = max(self.spatial_lat)
-        min_lon = min(self.spatial_lon)
-        max_lon = max(self.spatial_lon)
-        return (min_lat, max_lat, min_lon, max_lon)
+        mylist = None
+        with open(self.bbox_path) as f:
+            mylist = [tuple(map(float, i.split(','))) for i in f]
+        return mylist
 
 class SignalPlotter:
 
