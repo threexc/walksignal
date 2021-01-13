@@ -26,7 +26,6 @@ walksignal uses the following Python modules:
 - matplotlib
 - argparse
 - csv
-- pandas
 
 ### Basic Data Requirements
 
