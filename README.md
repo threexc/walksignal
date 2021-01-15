@@ -38,7 +38,8 @@ the following things are required:
 2. A map image exported from the OpenStreetMap site, which contains the area of
    interest (if plotting spatial data such as in the example)
 3. A map boundary box, defined as min/max lat/long readings, defined in the
-   same path as the map file and the data as "bbox.txt"
+   same path as the map file and the data as "bbox.txt". This can be
+   obtained on the same page as the export of the map image
 
 ### Pruning Data Sets
 
@@ -55,14 +56,10 @@ Example:
 com_plot allows visualizing the signal strength as a heatmap on a map generated
 with OpenStreetMap. Currently this only supports the map for the example data.
 
-To display one or more data sets as separate charts:
-`./com_plot --compare --list [file1] [file2] ... [fileN]`
-
 To combine all data into a single plot:
-`./com_plot --combine --list [file1] [file2] ... [fileN]`
+`./com_plot --reference data/oci_ref/302.csv --list [file1] [file2] ... [fileN]`
 
-In both cases, one of either --compare or --combine is required, as is
---list.
+Both arguments are currently required.
 
 ### Using plot_pair
 
@@ -92,5 +89,9 @@ or
 ## TODO
 
 - Clean up plotting code
-- Add more command-line options
+- Add option to identify tower associated with a given data point,
+  including range
+- Optimize for faster parsing and plotting, including possibly by adding
+  script to concatenate all data before reading
 - Start work on a GUI with more display features
+- Identify other insightful ways to display data
