@@ -10,54 +10,47 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import walksignal.dataset as reader
 import walksignal.plotter as plotter
-
-def compare_plots(files):
-    figs={}
-    axs={}
-    for i, datafile in enumerate(files):
-        dataset = reader.DataSet(datafile)
-        plotter = reader.SignalPlotter(dataset)
-        map_file = plt.imread(plotter.map_file)
-        map_bbox = (-75.70629, -75.69213, 45.41321, 45.41976)
-        ax = plt.subplot(len(files), 1, i+1)
-
-        pcm = ax.scatter(plotter.spatial_lon,
-                plotter.spatial_lat, zorder=1, alpha=1.0,
-                c=plotter.signal_range, cmap='gist_heat', s=40)
-        ax.set_xlim(map_bbox[0], map_bbox[1])
-        ax.set_ylim(map_bbox[2], map_bbox[3])
-        plt.colorbar(pcm, ax=ax)
-        im = ax.imshow(map_file, zorder=0, extent = map_bbox, aspect = "equal")
-
-    plt.show()
+import walksignal.towers as towers
 
 
-def combine_plots(files):
+def combine_plots(datafiles, reference_file):
     figs = {}
     axs = {}
     lon_data = np.array([])
     lat_data = np.array([])
     signal_data = np.array([])
+    tower_list = []
+    tower_lat_data = np.array([])
+    tower_lon_data = np.array([])
     dataset = None
     plotter = None
     map_bbox = None
+    towerset = None
 
-    for datafile in files:
+    for datafile in datafiles:
         dataset = reader.DataSet(datafile)
         plotter = SignalPlotter(dataset)
         lon_data = np.concatenate([lon_data, plotter.spatial_lon])
         lat_data = np.concatenate([lat_data, plotter.spatial_lat])
         signal_data = np.concatenate([signal_data, plotter.signal_range])
+        towerset = towers.TowerSet(datafile, reference_file)
+        tower_list = tower_list + towerset.tower_list
+
+    for tower in tower_list:
+        print(tower.lat)
+        print(tower.lon)
+        tower_lat_data = np.concatenate([tower_lat_data, [float(tower.lat)]])
+        tower_lon_data = np.concatenate([tower_lon_data, [float(tower.lon)]])
     
     map_file = plt.imread(plotter.map_file)
     map_bbox = dataset.map_bbox[0]
     fig = plt.figure()
-    im = plt.imshow(map_file, zorder=0, extent = map_bbox, aspect = "equal")
+    ax1 = fig.add_subplot(111)
+    im = ax1.imshow(map_file, zorder=0, extent = map_bbox, aspect = "equal")
     cm = plt.cm.get_cmap('gist_heat')
 
-    plot = plt.scatter(lon_data,
-            lat_data, zorder=1, alpha=1.0,
-            c=signal_data, cmap=cm, s=40)
+    plot = ax1.scatter(lon_data, lat_data, zorder=1, alpha=1.0, c=signal_data, cmap=cm, s=40)
+    ax1.scatter(tower_lon_data, tower_lat_data, zorder=1, alpha=1.0, color="blue")
     plt.xlim(map_bbox[0], map_bbox[1])
     plt.ylim(map_bbox[2], map_bbox[3])
     plt.ylabel("Latitude", rotation=90)
