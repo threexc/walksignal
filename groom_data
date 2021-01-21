@@ -18,6 +18,8 @@ def process_file(filename):
         print("{0} already pruned".format(filename))
 
 if __name__ == "__main__":
+    datapath = os.path.dirname(os.path.abspath(sys.argv[1]))
+    outfile = datapath + "/combined_data.csv"
     combined_csv = pd.concat([pd.read_csv(f) for f in sys.argv[1:]])
-    combined_csv.to_csv("combined_data.csv", index=False, encoding='utf-8-sig')
-    process_file("combined_data.csv")
+    combined_csv.to_csv(outfile, index=False, encoding='utf-8-sig')
+    process_file(outfile)
