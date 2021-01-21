@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+import csv
+import sys
+import fileinput
+import os
+import glob
+import pandas as pd
+
+if __name__ == "__main__":
+    combined_csv = pd.concat([pd.read_csv(f) for f in sys.argv[1:]])
+    combined_csv.to_csv("combined_data.csv", index=False, encoding='utf-8-sig')
