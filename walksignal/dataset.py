@@ -46,7 +46,7 @@ class DataSet:
         self.cellid = np.array(self.data_matrix[1:,3], dtype=int)
         self.rating = np.array(self.data_matrix[1:,8], dtype=float)
         self.direction = np.array(self.data_matrix[1:,10], dtype=float)
-        self.timing_advance = np.array(self.data_matrix[1:,12], dtype=int)
+        self.timing_advance = np.array(self.data_matrix[1:,12], dtype=float)
 
         # get access types and convert them to usable format
         self.access_type_range = np.array(self.data_matrix[1:,11])
