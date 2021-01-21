@@ -33,7 +33,7 @@ def combine_plots(datafiles, reference_file):
         lon_data = np.concatenate([lon_data, plotter.spatial_lon])
         lat_data = np.concatenate([lat_data, plotter.spatial_lat])
         signal_data = np.concatenate([signal_data, plotter.signal_range])
-        towerset = towers.TowerSet(datafile, reference_file)
+        towerset = towers.TowerList(datafile, reference_file)
         tower_list = tower_list + towerset.tower_list
 
     for tower in tower_list:
