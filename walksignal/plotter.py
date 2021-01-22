@@ -65,40 +65,6 @@ def combine_data(datafile, reference_file):
 
     plt.show()
 
-def plot_towerset(towerset, bbox, image):
-    figs = {}
-    axs = {}
-    map_bbox = None
-    tower = towerset.tower
-    points = towerset.points
-    lon_data = [point[5] for point in points]
-    lat_data = [point[4] for point in points]
-
-    plot_map = plt.imread(image)
-    map_bbox = bbox
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect = "equal")
-    cm = plt.cm.get_cmap('gist_heat')
-
-    plot = ax1.scatter(lon_data, lat_data, zorder=1, alpha=1.0, c=signal_data, cmap=cm, s=40)
-    ax1.scatter(tower.lon, tower.lat, zorder=1, alpha=1.0, color="blue")
-    plt.xlim(map_bbox[0], map_bbox[1])
-    plt.ylim(map_bbox[2], map_bbox[3])
-    plt.ylabel("Latitude", rotation=90)
-    plt.xlabel("Longitude", rotation=0)
-    plt.title("Signal Power vs Position")
-    ax = plt.axes()
-
-    # Make sure to prevent lat/long from being displayed in scientific
-    # notation
-    ax.ticklabel_format(useOffset=False)
-    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
-    cbar = plt.colorbar(plot, cax = cax)
-    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
-
-    plt.show()
-
 def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_title="X vs Y"):
     scatter = plt.scatter(x_axis, y_axis, c = annotation, s = 2)
     if annotation is not None:
