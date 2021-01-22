@@ -3,11 +3,11 @@ from walksignal import *
 
 parser = argparse.ArgumentParser() 
 parser.add_argument("--reference", required=True) 
-parser.add_argument("--list", nargs='+', required=True) 
+parser.add_argument("--datafile", required=True) 
 results = parser.parse_args() 
 
-print(results.list)
+print(results.datafile)
 print(results.reference)
 
-combine_plots(results.list, results.reference) 
+combine_data(results.datafile, results.reference) 
 
