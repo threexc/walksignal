@@ -9,7 +9,7 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import walksignal.data as data
-import walksignal.plotter as plotter
+import walksignal.plottools as plottools
 import walksignal.towers as towers
 import walksignal.utils as utils
 
@@ -22,25 +22,21 @@ def combine_data(datafile, reference_file):
     tower_lat_data = np.array([])
     tower_lon_data = np.array([])
     dataset = None
-    plotter = None
+    plottools = None
     map_bbox = None
     towerset = None
 
     dataset = data.DataSet(datafile)
-    plotter = SignalPlotter(dataset)
+    plottools = SignalPlotter(dataset)
     towerlist = towers.TowerList(datafile, reference_file)
     
 
-    for tower in towerlist.tower_list:
-        tower_lat_data = np.concatenate([tower_lat_data, [float(tower.lat)]])
-        tower_lon_data = np.concatenate([tower_lon_data, [float(tower.lon)]])
+    tower_lat_data, tower_lon_data = get_tower_positions(towerlist.tower_list)
     
     lat_data = np.array(dataset.data_matrix[1:,4], dtype=float)
     lon_data = np.array(dataset.data_matrix[1:,5], dtype=float)
     signal_data = np.array(dataset.data_matrix[1:,6], dtype=float)
-    print(lat_data)
-    print(lon_data)
-    plot_map = plt.imread(plotter.plot_map)
+    plot_map = plt.imread(plottools.plot_map)
     map_bbox = [entry for entry in utils.get_bbox(dataset.bbox_path)[0]]
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
@@ -87,6 +83,15 @@ def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_ti
     plt.legend(handles=[lte, lte_plus, umts, hspa_plus])
     plt.suptitle(plot_title)
     plt.show()
+
+def get_tower_positions(towerlist):
+    tower_lat_data = np.array([])
+    tower_lon_data = np.array([])
+    for tower in towerlist:
+        tower_lat_data = np.concatenate([tower_lat_data, [float(tower.lat)]])
+        tower_lon_data = np.concatenate([tower_lon_data, [float(tower.lon)]])
+    return tower_lat_data, tower_lon_data
+
 
 class SignalPlotter:
     def __init__(self, dataset):
