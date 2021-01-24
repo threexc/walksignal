@@ -32,12 +32,11 @@ def combine_data(datafile, reference_file):
     
 
     tower_lat_data, tower_lon_data = get_tower_positions(towerlist.tower_list)
+    plot_map, map_bbox = get_map_and_bbox(plottools.plot_map, utils.get_bbox(dataset.bbox_path)[0])
     
     lat_data = np.array(dataset.data_matrix[1:,4], dtype=float)
     lon_data = np.array(dataset.data_matrix[1:,5], dtype=float)
     signal_data = np.array(dataset.data_matrix[1:,6], dtype=float)
-    plot_map = plt.imread(plottools.plot_map)
-    map_bbox = [entry for entry in utils.get_bbox(dataset.bbox_path)[0]]
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     im = ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect = "equal")
@@ -91,6 +90,12 @@ def get_tower_positions(towerlist):
         tower_lat_data = np.concatenate([tower_lat_data, [float(tower.lat)]])
         tower_lon_data = np.concatenate([tower_lon_data, [float(tower.lon)]])
     return tower_lat_data, tower_lon_data
+
+def get_map_and_bbox(plot_map, map_bbox):
+    plt_map = plt.imread(plot_map)
+    plt_bbox = [entry for entry in map_bbox]
+    return plt_map, plt_bbox
+
 
 
 class SignalPlotter:
