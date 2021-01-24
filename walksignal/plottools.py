@@ -27,12 +27,11 @@ def plot_gsp(datafile, reference_file):
     towerset = None
 
     dataset = data.DataSet(datafile)
-    plottools = SignalPlotter(dataset)
     towerlist = towers.TowerList(datafile, reference_file)
     
 
     tower_lat_data, tower_lon_data = get_tower_positions(towerlist.tower_list)
-    plot_map, map_bbox = get_map_and_bbox(plottools.plot_map, utils.get_bbox(dataset.bbox_path)[0])
+    plot_map, map_bbox = get_map_and_bbox(dataset.map_path, utils.get_bbox(dataset.bbox_path)[0])
     
     lat_data = np.array(dataset.data_matrix[1:,4], dtype=float)
     lon_data = np.array(dataset.data_matrix[1:,5], dtype=float)
@@ -96,81 +95,3 @@ def get_map_and_bbox(plot_map, map_bbox):
     plt_map = plt.imread(plot_map)
     plt_bbox = [entry for entry in map_bbox]
     return plt_map, plt_bbox
-
-
-
-class SignalPlotter:
-    def __init__(self, dataset):
-        self.dataset = dataset
-        self.plot_map = self.dataset.data_path + "/map.png"
-        self.dataset_name = self.dataset.dataset_name
-
-    def plot_dbm_and_speed(self, independent, dependent, annotation = None):
-        plt.subplot(2,1,1)
-        plt.scatter(independent, dependent, c=self.access_type_color_codes)
-        for element in range(len(self.time_range)):
-            if annotation is not None:
-                plt.text(independent[element], dependent[element], str(annotation[element]))
-        plt.xlabel("Time (seconds)")
-        plt.ylabel("Signal Strength (dBm)")
-        plt.grid()
-        lte = mpatches.Patch(color="r", label="LTE")
-        lte_plus = mpatches.Patch(color="b", label="LTE+")
-        umts = mpatches.Patch(color="g", label="UMTS")
-        hspa_plus = mpatches.Patch(color="k", label="HSPA+")
-        plt.legend(handles=[lte, lte_plus, umts, hspa_plus])
-        plt.suptitle("Mixed LTE/LTE+/UMTS/HSPA Signal Strength Over Time, Start Time {0} UTC".format(self.dataset.start_time))
-
-        plt.subplot(2,1,2)
-        plt.plot(self.time_range, self.speed_values, 'o--')
-        plt.xlabel("Time (seconds)")
-        plt.ylabel("Speed (m/s)")
-        plt.grid()
-
-        plt.show()
-    
-    def plot_dbm_vs_time(self, independent, dependent, annotation=None):
-        self.scatter = plt.scatter(independent, dependent, c=self.access_type_color_codes)
-        for element in range(len(self.time_range)):
-            if annotation is not None:
-                plt.text(independent[element], dependent[element], str(annotation[element]))
-        plt.xlabel("Time (seconds)")
-        plt.ylabel("Signal Strength (dBm)")
-        plt.grid()
-        lte = mpatches.Patch(color="r", label="LTE")
-        lte_plus = mpatches.Patch(color="b", label="LTE+")
-        umts = mpatches.Patch(color="g", label="UMTS")
-        hspa_plus = mpatches.Patch(color="k", label="HSPA+")
-        plt.legend(handles=[lte, lte_plus, umts, hspa_plus])
-        plt.suptitle("Mixed LTE/LTE+/UMTS/HSPA Signal Strength Over Time, Start Time {0} UTC".format(self.dataset.start_time))
-        plt.show()
-    
-    def plot_speed_vs_time(self, annotation=None):
-        self.plot = plt.plot(self.time_range, self.speed_values, 'o--')
-        for element in range(len(self.time_range)):
-            if annotation is not None:
-                plt.text(self.time_range[element], self.speed_values[element], str(annotation[element]))
-        plt.xlabel("Time (seconds)")
-        plt.ylabel("Speed (m/s)")
-        plt.grid()
-        lte = mpatches.Patch(color="r", label="LTE")
-        lte_plus = mpatches.Patch(color="b", label="LTE+")
-        umts = mpatches.Patch(color="g", label="UMTS")
-        hspa_plus = mpatches.Patch(color="k", label="HSPA+")
-        plt.legend(handles=[lte, lte_plus, umts, hspa_plus])
-        plt.suptitle("Mixed LTE/LTE+/UMTS/HSPA Device Speed Over Time, Start Time {0} UTC".format(self.dataset.start_time))
-        plt.show()
-    
-    def plot_path(self):
-        self.plot = plt.imread(self.plot_map)
-        fig, ax = plt.subplots(figsize = (8,7))
-        mainplot = ax.scatter(self.spatial_lon, self.spatial_lat, zorder=1,
-                alpha=1.0, c=self.dataset.signal_range, cmap='gist_heat', s=40)
-        ax.set_title(self.dataset_name)
-        ax.set_xlim(self.map_bbox[0], self.map_bbox[1])
-        ax.set_ylim(self.map_bbox[2], self.map_bbox[3])
-        im = ax.imshow(self.plot, zorder=0, extent = self.map_bbox, aspect= 'equal')
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="2.5%", pad=0.05)
-        plt.colorbar(mainplot, cax=cax)
-        plt.show()
