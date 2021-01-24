@@ -9,5 +9,5 @@ results = parser.parse_args()
 print(results.datafile)
 print(results.reference)
 
-combine_data(results.datafile, results.reference) 
+plot_gsp(results.datafile, results.reference) 
 

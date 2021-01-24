@@ -51,13 +51,13 @@ Example:
 
 `./prune_data data/lacolyoc/OpenCellID_2020*`
 
-### Using com_plot
+### Using plot_gsp
 
-com_plot allows visualizing the signal strength as a heatmap on a map generated
+plot_gsp allows visualizing the signal strength as a heatmap on a map generated
 with OpenStreetMap. Currently this only supports the map for the example data.
 
 To combine all data into a single plot:
-`./com_plot --reference data/oci_ref/302.csv --list [file1] [file2] ... [fileN]`
+`./plot_gsp --reference data/oci_ref/302.csv --list [file1] [file2] ... [fileN]`
 
 Both arguments are currently required.
 

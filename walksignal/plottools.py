@@ -14,7 +14,7 @@ import walksignal.towers as towers
 import walksignal.utils as utils
 
 
-def combine_data(datafile, reference_file):
+def plot_gsp(datafile, reference_file):
     figs = {}
     axs = {}
     signal_data = np.array([])
@@ -37,11 +37,12 @@ def combine_data(datafile, reference_file):
     lat_data = np.array(dataset.data_matrix[1:,4], dtype=float)
     lon_data = np.array(dataset.data_matrix[1:,5], dtype=float)
     signal_data = np.array(dataset.data_matrix[1:,6], dtype=float)
+
+    # Plot the data on the map
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     im = ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect = "equal")
     cm = plt.cm.get_cmap('gist_heat')
-
     plot = ax1.scatter(lon_data, lat_data, zorder=1, alpha=1.0, c=signal_data, cmap=cm, s=40)
     ax1.scatter(tower_lon_data, tower_lat_data, zorder=1, alpha=1.0, color="blue")
     plt.xlim(map_bbox[0], map_bbox[1])
