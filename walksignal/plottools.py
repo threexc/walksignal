@@ -208,14 +208,14 @@ def plot_two_ll(lat_data_1, lon_data_1, lat_data_2, lon_data_2, plot_map, map_bb
 
     plt.show()
 
-def setup_plot_image(ax1, plot_map, map_bbox):
-    return ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect="equal")
+def setup_plot_image(ax, plot_map, map_bbox):
+    return ax.imshow(plot_map, zorder=0, extent = map_bbox, aspect="equal")
 
-def signal_scatter(ax1, lon_data, lat_data, signal_data, cm):
-    return ax1.scatter(lon_data, lat_data, zorder=1, c=signal_data, cmap=cm)
+def signal_scatter(ax, lon_data, lat_data, signal_data, cm):
+    return ax.scatter(lon_data, lat_data, zorder=1, c=signal_data, cmap=cm)
 
-def points_scatter(ax1, lon_data, lat_data, col="blue"):
-    return ax1.scatter(lon_data, lat_data, zorder=1, alpha=1.0, color=col)
+def points_scatter(ax, lon_data, lat_data, col="blue"):
+    return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, color=col)
 
 def get_tower_positions(towerlist):
     tower_lat_data = np.array([])
