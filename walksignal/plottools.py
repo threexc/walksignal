@@ -40,7 +40,27 @@ def plot_gsp(datafile, reference_file):
     lon_data = np.array(dataset.data_matrix[1:,5], dtype=float)
     signal_data = np.array(dataset.data_matrix[1:,6], dtype=float)
 
-    plot_two_ll(lat_data, lon_data, tower_lat_data, tower_lon_data, plot_map, map_bbox, signal_data)
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    im = setup_plot_image(ax1, plot_map, map_bbox)
+    cm = plt.cm.get_cmap('gist_heat')
+    signals = signal_scatter(ax1, lon_data, lat_data, signal_data, cm)
+    tower_plot = points_scatter(ax1, tower_lon_data, tower_lat_data, "blue")
+    plt.xlim(map_bbox[0], map_bbox[1])
+    plt.ylim(map_bbox[2], map_bbox[3])
+    plt.ylabel("Latitude", rotation=90)
+    plt.xlabel("Longitude", rotation=0)
+    plt.title("Signal Power vs Position")
+    ax = plt.axes()
+
+    # Make sure to prevent lat/long from being displayed in scientific
+    # notation
+    ax.ticklabel_format(useOffset=False)
+    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+    cbar = plt.colorbar(signals, cax = cax)
+    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
+
+    plt.show()
 
 def plot_rating(datafile, reference_file):
     figs = {}
@@ -57,7 +77,6 @@ def plot_rating(datafile, reference_file):
     dataset = data.DataSet(datafile)
     towerlist = towers.TowerList(datafile, reference_file)
     
-
     tower_lat_data, tower_lon_data = get_tower_positions(towerlist.tower_list)
     plot_map, map_bbox = get_map_and_bbox(dataset.map_path, utils.get_bbox(dataset.bbox_path)[0])
     
@@ -71,10 +90,9 @@ def plot_rating(datafile, reference_file):
     ax1 = fig.add_subplot(111)
     im = ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect = "equal")
     cm = plt.cm.get_cmap('gist_heat')
-    plot = ax1.scatter(lon_data, lat_data, zorder=1, alpha=1.0, c=dataset.rating, cmap=cm, s=40)
-    ax1.scatter(tower_lon_data, tower_lat_data, zorder=1, alpha=1.0, color="blue")
-    plt.xlim(map_bbox[0], map_bbox[1])
-    plt.ylim(map_bbox[2], map_bbox[3])
+    plot = signal_scatter(ax1, lon_data, lat_data, dataset.rating, cm)
+    plot2 = points_scatter(ax1, tower_lon_data, tower_lat_data, "blue")
+    set_plot_bbox(plt, map_bbox)
     plt.ylabel("Latitude", rotation=90)
     plt.xlabel("Longitude", rotation=0)
     plt.title("Rating vs Position")
@@ -90,7 +108,7 @@ def plot_rating(datafile, reference_file):
     plt.show()
 
 def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_title="X vs Y"):
-    scatter = plt.scatter(x_axis, y_axis, c = annotation, s = 2)
+    scatter = points_scatter(x_axis, y_axis, c = annotation, s = 2)
     if annotation is not None:
         for element in range(len(x_axis)):
             if annotation[element] is not None:
@@ -164,12 +182,11 @@ def plot_positioning(datafile, reference_file):
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     im = ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect = "equal")
-    cm = plt.cm.get_cmap('gist_heat')
-    cm2 = plt.cm.get_cmap('gist_gray')
-    plot = ax1.scatter(lon_data, lat_data, zorder=1, alpha=1.0, c=signal_data, cmap=cm, s=40)
-    ax1.scatter(corrected_lon, corrected_lat, zorder=1, alpha=1.0, c=signal_data, cmap=cm2, s=40)
-    plt.xlim(map_bbox[0], map_bbox[1])
-    plt.ylim(map_bbox[2], map_bbox[3])
+    cmap = plt.cm.get_cmap('gist_heat')
+    cmap2 = plt.cm.get_cmap('gist_gray')
+    plot = signal_scatter(ax1, lon_data, lat_data, signal_data, cmap)
+    plot2 = signal_scatter(ax1, corrected_lon, corrected_lat, signal_data, cmap2)
+    set_plot_bbox(plt, map_bbox)
     plt.ylabel("Latitude", rotation=90)
     plt.xlabel("Longitude", rotation=0)
     plt.title("Signal Power vs Position")
@@ -184,38 +201,18 @@ def plot_positioning(datafile, reference_file):
 
     plt.show()
 
-def plot_two_ll(lat_data_1, lon_data_1, lat_data_2, lon_data_2, plot_map, map_bbox, signal_data):
-    # Plot the data on the map
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = setup_plot_image(ax1, plot_map, map_bbox)
-    cm = plt.cm.get_cmap('gist_heat')
-    signals = signal_scatter(ax1, lon_data_1, lat_data_1, signal_data, cm)
-    towers = points_scatter(ax1, lon_data_2, lat_data_2)
-    plt.xlim(map_bbox[0], map_bbox[1])
-    plt.ylim(map_bbox[2], map_bbox[3])
-    plt.ylabel("Latitude", rotation=90)
-    plt.xlabel("Longitude", rotation=0)
-    plt.title("Signal Power vs Position")
-    ax = plt.axes()
-
-    # Make sure to prevent lat/long from being displayed in scientific
-    # notation
-    ax.ticklabel_format(useOffset=False)
-    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
-    cbar = plt.colorbar(signals, cax = cax)
-    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
-
-    plt.show()
-
 def setup_plot_image(ax, plot_map, map_bbox):
     return ax.imshow(plot_map, zorder=0, extent = map_bbox, aspect="equal")
 
 def signal_scatter(ax, lon_data, lat_data, signal_data, cm):
-    return ax.scatter(lon_data, lat_data, zorder=1, c=signal_data, cmap=cm)
+    return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, c=signal_data, cmap=cm)
 
 def points_scatter(ax, lon_data, lat_data, col="blue"):
     return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, color=col)
+
+def set_plot_bbox(plt, bbox):
+    plt.xlim(bbox[0], bbox[1])
+    plt.ylim(bbox[2], bbox[3])
 
 def get_tower_positions(towerlist):
     tower_lat_data = np.array([])
