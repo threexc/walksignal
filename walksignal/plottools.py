@@ -19,7 +19,9 @@ import walksignal.utils as utils
 class PlotSetup:
     def __init__(self, datafile, reference_file):
         self.tower_list = towers.TowerList(datafile, reference_file)
-        self.tower_lat_data, self.tower_lon_data = __get_tower_positions(self.tower_list.tower_list)
+        self.tower_lat_data = np.array([])
+        self.tower_lon_data = np.array([])
+        self.__get_tower_positions(self.tower_list.tower_list)
         self.dataset = data.DataSet(datafile)
         self.lat_data = self.dataset.lat
         self.lon_data = self.dataset.lon
@@ -27,14 +29,28 @@ class PlotSetup:
         self.rating = self.dataset.rating
         self.speed_values = self.dataset.speed_values
         self.direction = self.dataset.direction
-        self.plot_map, self.map_bbox = __get_map_and_bbox(self.dataset.map_path, utils.get_bbox(self.dataset.bbox_path)[0])
+        self.plot_map = None
+        self.map_bbox = None
+        self.__get_map_and_bbox()
         self.fig = plt.figure()
         self.ax1 = self.fig.add_subplot(111)
-        self.im = __plt_set_image(self.ax1, self.plot_map, self.map_bbox)
+        self.__set_image()
         self.cm = plt.cm.get_cmap('gist_heat')
         self.cm2 = plt.cm.get_cmap('gist_gray')
         self.avg_lat_diff = np.average(np.ediff1d(self.lat_data))
         self.avg_lon_diff = np.average(np.ediff1d(self.lon_data))
+
+    def __get_tower_positions(self, tower_list):
+        for tower in tower_list:
+            self.tower_lat_data = np.concatenate([self.tower_lat_data, [float(tower.lat)]])
+            self.tower_lon_data = np.concatenate([self.tower_lon_data, [float(tower.lon)]])
+
+    def __get_map_and_bbox(self):
+        self.plot_map = plt.imread(self.dataset.map_path)
+        self.map_bbox = [entry for entry in utils.get_bbox(self.dataset.bbox_path)]
+
+    def __set_image(self):
+        self.ax1.imshow(self.plot_map, zorder=0, extent = self.map_bbox[0], aspect="equal")
 
 def plot_gsp(datafile, reference_file):
     setup = PlotSetup(datafile, reference_file)
@@ -114,9 +130,6 @@ def plot_positioning(datafile, reference_file):
 
     plt.show()
 
-def __plt_set_image(ax, plot_map, map_bbox):
-    return ax.imshow(plot_map, zorder=0, extent = map_bbox, aspect="equal")
-
 def __plt_set_label(x_label="Longitude", x_rot=0, y_label="Latitude", y_rot=90, title="Signal Power vs Position"):
     plt.ylabel(y_label, rotation=y_rot)
     plt.xlabel(x_label, rotation=x_rot)
@@ -132,8 +145,8 @@ def __plt_set_colorbar(setup, plot, label="Signal Power(dBm)"):
     cbar.ax.set_ylabel(label, rotation=270, labelpad=10)
 
 def __plt_set_bbox(plt, bbox):
-    plt.xlim(bbox[0], bbox[1])
-    plt.ylim(bbox[2], bbox[3])
+    plt.xlim(bbox[0][0], bbox[0][1])
+    plt.ylim(bbox[0][2], bbox[0][3])
 
 def __plt_signal_scatter(ax, lon_data, lat_data, signal_data, cm):
     return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, s=20, c=signal_data, cmap=cm)
@@ -148,11 +161,6 @@ def __get_tower_positions(towerlist):
         tower_lat_data = np.concatenate([tower_lat_data, [float(tower.lat)]])
         tower_lon_data = np.concatenate([tower_lon_data, [float(tower.lon)]])
     return tower_lat_data, tower_lon_data
-
-def __get_map_and_bbox(plot_map, map_bbox):
-    plt_map = plt.imread(plot_map)
-    plt_bbox = [entry for entry in map_bbox]
-    return plt_map, plt_bbox
 
 def __convert_to_xy(lat, lon):
     x, y, zn, zl = utm.from_latlon(lat, lon)
