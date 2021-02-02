@@ -21,7 +21,7 @@ class PlotSetup:
         self.tower_list = towers.TowerList(datafile, reference_file)
         self.tower_lat_data = np.array([])
         self.tower_lon_data = np.array([])
-        self.__get_tower_positions(self.tower_list.tower_list)
+        self.__get_tower_positions()
         self.dataset = data.DataSet(datafile)
         self.lat_data = self.dataset.lat
         self.lon_data = self.dataset.lon
@@ -40,8 +40,8 @@ class PlotSetup:
         self.avg_lat_diff = np.average(np.ediff1d(self.lat_data))
         self.avg_lon_diff = np.average(np.ediff1d(self.lon_data))
 
-    def __get_tower_positions(self, tower_list):
-        for tower in tower_list:
+    def __get_tower_positions(self):
+        for tower in self.tower_list.tower_list:
             self.tower_lat_data = np.concatenate([self.tower_lat_data, [float(tower.lat)]])
             self.tower_lon_data = np.concatenate([self.tower_lon_data, [float(tower.lon)]])
 
