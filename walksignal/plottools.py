@@ -42,17 +42,8 @@ def plot_gsp(datafile, reference_file):
     signals = signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
     tower_plot = points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
     set_plot_bbox(plt, setup.map_bbox)
-    plt.ylabel("Latitude", rotation=90)
-    plt.xlabel("Longitude", rotation=0)
-    plt.title("Signal Power vs Position")
-    ax = plt.axes()
-
-    # Make sure to prevent lat/long from being displayed in scientific
-    # notation
-    ax.ticklabel_format(useOffset=False)
-    cax = setup.fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
-    cbar = plt.colorbar(signals, cax = cax)
-    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
+    label_plot()
+    set_colorbar(setup, signals)
 
     plt.show()
 
@@ -63,18 +54,9 @@ def plot_rating(datafile, reference_file):
     signals = signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.rating, setup.cm)
     tower_plot = points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
     set_plot_bbox(plt, setup.map_bbox)
-    plt.ylabel("Latitude", rotation=90)
-    plt.xlabel("Longitude", rotation=0)
-    plt.title("Rating vs Position")
-    ax = plt.axes()
-
-    # Make sure to prevent lat/long from being displayed in scientific
-    # notation
-    ax.ticklabel_format(useOffset=False)
-    cax = setup.fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
-    cbar = plt.colorbar(signals, cax = cax)
-    cbar.ax.set_ylabel("GPS Rating (m)", rotation=270, labelpad=10)
-
+    label_plot(title="Rating vs Position")
+    set_colorbar(setup, signals, "Rating (m)")
+    
     plt.show()
 
 def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_title="X vs Y"):
@@ -127,22 +109,27 @@ def plot_positioning(datafile, reference_file):
     plot = signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
     plot2 = signal_scatter(setup.ax1, corrected_lon, corrected_lat, setup.signal_data, setup.cm2)
     set_plot_bbox(plt, setup.map_bbox)
-    plt.ylabel("Latitude", rotation=90)
-    plt.xlabel("Longitude", rotation=0)
-    plt.title("Signal Power vs Position")
-    ax = plt.axes()
-
-    # Make sure to prevent lat/long from being displayed in scientific
-    # notation
-    ax.ticklabel_format(useOffset=False)
-    cax = setup.fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
-    cbar = plt.colorbar(plot, cax = cax)
-    cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
+    label_plot()
+    set_colorbar(setup, plot)
 
     plt.show()
 
 def setup_plot_image(ax, plot_map, map_bbox):
     return ax.imshow(plot_map, zorder=0, extent = map_bbox, aspect="equal")
+
+def label_plot(x_label="Longitude", x_rot=0, y_label="Latitude", y_rot=90, title="Signal Power vs Position"):
+    plt.ylabel(y_label, rotation=y_rot)
+    plt.xlabel(x_label, rotation=x_rot)
+    plt.title(title)
+
+def set_colorbar(setup, plot, label="Signal Power(dBm)"):
+    ax = plt.axes()
+    # Make sure to prevent lat/long from being displayed in scientific
+    # notation
+    ax.ticklabel_format(useOffset=False)
+    cax = setup.fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+    cbar = plt.colorbar(plot, cax = cax)
+    cbar.ax.set_ylabel(label, rotation=270, labelpad=10)
 
 def signal_scatter(ax, lon_data, lat_data, signal_data, cm):
     return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, s=20, c=signal_data, cmap=cm)
