@@ -16,38 +16,27 @@ import walksignal.plottools as plottools
 import walksignal.towers as towers
 import walksignal.utils as utils
 
+class PlotSetup:
+    def __init__(self, datafile, reference_file):
+        self.tower_list = towers.TowerList(datafile, reference_file)
+        self.tower_lat_data, self.tower_lon_data = get_tower_positions(self.tower_list.tower_list)
+        self.dataset = data.DataSet(datafile)
+        self.lat_data = np.array(self.dataset.data_matrix[1:,4], dtype=float)
+        self.lon_data = np.array(self.dataset.data_matrix[1:,5], dtype=float)
+        self.signal_data = np.array(self.dataset.data_matrix[1:,6], dtype=float)
+        self.plot_map, self.map_bbox = get_map_and_bbox(self.dataset.map_path, utils.get_bbox(self.dataset.bbox_path)[0])
+        self.fig = plt.figure()
+        self.ax1 = self.fig.add_subplot(111)
+        self.im = setup_plot_image(self.ax1, self.plot_map, self.map_bbox)
+        self.cm = plt.cm.get_cmap('gist_heat')
+        self.cm2 = plt.cm.get_cmap('gist_gray')
 
 def plot_gsp(datafile, reference_file):
-    figs = {}
-    axs = {}
-    signal_data = np.array([])
-    tower_list = []
-    tower_lat_data = np.array([])
-    tower_lon_data = np.array([])
-    dataset = None
-    plottools = None
-    map_bbox = None
-    towerset = None
+    setup = PlotSetup(datafile, reference_file)
 
-    dataset = data.DataSet(datafile)
-    towerlist = towers.TowerList(datafile, reference_file)
-    
-
-    tower_lat_data, tower_lon_data = get_tower_positions(towerlist.tower_list)
-    plot_map, map_bbox = get_map_and_bbox(dataset.map_path, utils.get_bbox(dataset.bbox_path)[0])
-    
-    lat_data = np.array(dataset.data_matrix[1:,4], dtype=float)
-    lon_data = np.array(dataset.data_matrix[1:,5], dtype=float)
-    signal_data = np.array(dataset.data_matrix[1:,6], dtype=float)
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = setup_plot_image(ax1, plot_map, map_bbox)
-    cm = plt.cm.get_cmap('gist_heat')
-    signals = signal_scatter(ax1, lon_data, lat_data, signal_data, cm)
-    tower_plot = points_scatter(ax1, tower_lon_data, tower_lat_data, "blue")
-    plt.xlim(map_bbox[0], map_bbox[1])
-    plt.ylim(map_bbox[2], map_bbox[3])
+    signals = signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
+    tower_plot = points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
+    set_plot_bbox(plt, setup.map_bbox)
     plt.ylabel("Latitude", rotation=90)
     plt.xlabel("Longitude", rotation=0)
     plt.title("Signal Power vs Position")
@@ -56,7 +45,7 @@ def plot_gsp(datafile, reference_file):
     # Make sure to prevent lat/long from being displayed in scientific
     # notation
     ax.ticklabel_format(useOffset=False)
-    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+    cax = setup.fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     cbar = plt.colorbar(signals, cax = cax)
     cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
 
@@ -70,7 +59,6 @@ def plot_rating(datafile, reference_file):
     tower_lat_data = np.array([])
     tower_lon_data = np.array([])
     dataset = None
-    plottools = None
     map_bbox = None
     towerset = None
 
@@ -138,7 +126,6 @@ def plot_positioning(datafile, reference_file):
     tower_lat_data = np.array([])
     tower_lon_data = np.array([])
     dataset = None
-    plottools = None
     map_bbox = None
     towerset = None
 
