@@ -21,15 +21,20 @@ class PlotSetup:
         self.tower_list = towers.TowerList(datafile, reference_file)
         self.tower_lat_data, self.tower_lon_data = get_tower_positions(self.tower_list.tower_list)
         self.dataset = data.DataSet(datafile)
-        self.lat_data = np.array(self.dataset.data_matrix[1:,4], dtype=float)
-        self.lon_data = np.array(self.dataset.data_matrix[1:,5], dtype=float)
-        self.signal_data = np.array(self.dataset.data_matrix[1:,6], dtype=float)
+        self.lat_data = self.dataset.lat
+        self.lon_data = self.dataset.lon
+        self.signal_data = self.dataset.signal_range
+        self.rating = self.dataset.rating
+        self.speed_values = self.dataset.speed_values
+        self.direction = self.dataset.direction
         self.plot_map, self.map_bbox = get_map_and_bbox(self.dataset.map_path, utils.get_bbox(self.dataset.bbox_path)[0])
         self.fig = plt.figure()
         self.ax1 = self.fig.add_subplot(111)
         self.im = setup_plot_image(self.ax1, self.plot_map, self.map_bbox)
         self.cm = plt.cm.get_cmap('gist_heat')
         self.cm2 = plt.cm.get_cmap('gist_gray')
+        self.avg_lat_diff = np.average(np.ediff1d(self.lat_data))
+        self.avg_lon_diff = np.average(np.ediff1d(self.lon_data))
 
 def plot_gsp(datafile, reference_file):
     setup = PlotSetup(datafile, reference_file)
@@ -52,35 +57,12 @@ def plot_gsp(datafile, reference_file):
     plt.show()
 
 def plot_rating(datafile, reference_file):
-    figs = {}
-    axs = {}
-    signal_data = np.array([])
-    tower_list = []
-    tower_lat_data = np.array([])
-    tower_lon_data = np.array([])
-    dataset = None
-    map_bbox = None
-    towerset = None
+    setup = PlotSetup(datafile, reference_file)
+    #np.set_printoptions(threshold=sys.maxsize)
 
-    dataset = data.DataSet(datafile)
-    towerlist = towers.TowerList(datafile, reference_file)
-    
-    tower_lat_data, tower_lon_data = get_tower_positions(towerlist.tower_list)
-    plot_map, map_bbox = get_map_and_bbox(dataset.map_path, utils.get_bbox(dataset.bbox_path)[0])
-    
-    lat_data = np.array(dataset.data_matrix[1:,4], dtype=float)
-    lon_data = np.array(dataset.data_matrix[1:,5], dtype=float)
-    signal_data = np.array(dataset.data_matrix[1:,6], dtype=float)
-    np.set_printoptions(threshold=sys.maxsize)
-
-    # Plot the data on the map
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect = "equal")
-    cm = plt.cm.get_cmap('gist_heat')
-    plot = signal_scatter(ax1, lon_data, lat_data, dataset.rating, cm)
-    plot2 = points_scatter(ax1, tower_lon_data, tower_lat_data, "blue")
-    set_plot_bbox(plt, map_bbox)
+    signals = signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.rating, setup.cm)
+    tower_plot = points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
+    set_plot_bbox(plt, setup.map_bbox)
     plt.ylabel("Latitude", rotation=90)
     plt.xlabel("Longitude", rotation=0)
     plt.title("Rating vs Position")
@@ -89,8 +71,8 @@ def plot_rating(datafile, reference_file):
     # Make sure to prevent lat/long from being displayed in scientific
     # notation
     ax.ticklabel_format(useOffset=False)
-    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
-    cbar = plt.colorbar(plot, cax = cax)
+    cax = setup.fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+    cbar = plt.colorbar(signals, cax = cax)
     cbar.ax.set_ylabel("GPS Rating (m)", rotation=270, labelpad=10)
 
     plt.show()
@@ -119,35 +101,20 @@ def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_ti
     plt.show()
 
 def plot_positioning(datafile, reference_file):
-    figs = {}
-    axs = {}
-    signal_data = np.array([])
-    tower_list = []
-    tower_lat_data = np.array([])
-    tower_lon_data = np.array([])
-    dataset = None
-    map_bbox = None
-    towerset = None
+    setup = PlotSetup(datafile, reference_file)
+    corrected_lat = []
+    corrected_lon = []
 
-    dataset = data.DataSet(datafile)
-    plot_map, map_bbox = get_map_and_bbox(dataset.map_path, utils.get_bbox(dataset.bbox_path)[0])
-    
-    lat_data = np.array(dataset.data_matrix[1:,4], dtype=float)
-    lon_data = np.array(dataset.data_matrix[1:,5], dtype=float)
-    signal_data = np.array(dataset.data_matrix[1:,6], dtype=float)
-    avg_lat_diff = np.average(np.ediff1d(lat_data))
-    avg_lon_diff = np.average(np.ediff1d(lon_data))
-    
-    corrected_lat = np.array(dataset.data_matrix[1:,4], dtype=float)
-    corrected_lon = np.array(dataset.data_matrix[1:,5], dtype=float)
-    for entry in range(len(lat_data) - 1):
-        corr = 1.2
-        proj_lat, proj_lon = project_next_position(lat_data[entry], lon_data[entry], dataset.speed_values[entry], dataset.direction[entry])
-        proj_diff_lat = np.absolute(lat_data[entry] - proj_lat)
-        proj_diff_lon = np.absolute(lon_data[entry] - proj_lon)
-        orig_diff_lat = np.absolute(lat_data[entry] - lat_data[entry+1])
-        orig_diff_lon = np.absolute(lon_data[entry] - lon_data[entry+1])
-        print(proj_diff_lat, orig_diff_lat, proj_diff_lon, orig_diff_lon)
+    for entry in range(len(setup.lat_data)):
+        corrected_lat.append(setup.lat_data[entry])
+        corrected_lon.append(setup.lon_data[entry])
+    for entry in range(len(setup.lat_data) - 1):
+        corr = 1.01
+        proj_lat, proj_lon = project_next_position(setup.lat_data[entry], setup.lon_data[entry], setup.speed_values[entry], setup.direction[entry])
+        proj_diff_lat = np.absolute(setup.lat_data[entry] - proj_lat)
+        proj_diff_lon = np.absolute(setup.lon_data[entry] - proj_lon)
+        orig_diff_lat = np.absolute(setup.lat_data[entry] - setup.lat_data[entry+1])
+        orig_diff_lon = np.absolute(setup.lon_data[entry] - setup.lon_data[entry+1])
 
         if ((orig_diff_lat > proj_diff_lat * corr) and (orig_diff_lon > proj_diff_lon * corr)):
             corrected_lat[entry] = proj_lat
@@ -157,23 +124,9 @@ def plot_positioning(datafile, reference_file):
         elif (orig_diff_lon > proj_diff_lon * corr):
             corrected_lon[entry] = proj_lon
 
-        #if ((orig_diff_lat > avg_lat_diff * corr) and (orig_diff_lon > avg_lon_diff * corr)):
-        #    corrected_lat[entry] = proj_lat
-        #    corrected_lon[entry] = proj_lon
-        #elif (orig_diff_lat > avg_lat_diff * corr):
-        #    corrected_lat[entry] = proj_lat
-        #elif (orig_diff_lon > avg_lon_diff * corr):
-        #    corrected_lon[entry] = proj_lon
-
-    # Plot the data on the map
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    im = ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect = "equal")
-    cmap = plt.cm.get_cmap('gist_heat')
-    cmap2 = plt.cm.get_cmap('gist_gray')
-    plot = signal_scatter(ax1, lon_data, lat_data, signal_data, cmap)
-    plot2 = signal_scatter(ax1, corrected_lon, corrected_lat, signal_data, cmap2)
-    set_plot_bbox(plt, map_bbox)
+    plot = signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
+    plot2 = signal_scatter(setup.ax1, corrected_lon, corrected_lat, setup.signal_data, setup.cm2)
+    set_plot_bbox(plt, setup.map_bbox)
     plt.ylabel("Latitude", rotation=90)
     plt.xlabel("Longitude", rotation=0)
     plt.title("Signal Power vs Position")
@@ -182,7 +135,7 @@ def plot_positioning(datafile, reference_file):
     # Make sure to prevent lat/long from being displayed in scientific
     # notation
     ax.ticklabel_format(useOffset=False)
-    cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
+    cax = setup.fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     cbar = plt.colorbar(plot, cax = cax)
     cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
 
@@ -192,10 +145,10 @@ def setup_plot_image(ax, plot_map, map_bbox):
     return ax.imshow(plot_map, zorder=0, extent = map_bbox, aspect="equal")
 
 def signal_scatter(ax, lon_data, lat_data, signal_data, cm):
-    return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, c=signal_data, cmap=cm)
+    return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, s=20, c=signal_data, cmap=cm)
 
 def points_scatter(ax, lon_data, lat_data, col="blue"):
-    return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, color=col)
+    return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, s=20, color=col)
 
 def set_plot_bbox(plt, bbox):
     plt.xlim(bbox[0], bbox[1])
@@ -224,8 +177,8 @@ def convert_to_latlon(x, y, zn, zl):
 
 def advance_coordinates(x, y, speed, direction):
     # north is 0, east is 90
-    x_advance = speed * 5 * -1 * math.cos(direction + math.pi/2)
-    y_advance = speed * 5 * math.sin(direction + math.pi/2)
+    x_advance = speed * -1 * math.cos(direction + math.pi/2)
+    y_advance = speed * math.sin(direction + math.pi/2)
     adj_x = x + x_advance
     adj_y = y + y_advance
 
