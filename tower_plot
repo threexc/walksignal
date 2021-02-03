@@ -11,6 +11,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import walksignal.data as data
 import walksignal.towers as towers
 import walksignal.utils as utils
+import walksignal.plottools as pt
 
 parser = argparse.ArgumentParser() 
 parser.add_argument("--reference", required=True) 
@@ -21,59 +22,4 @@ parser.add_argument("--mnc", required=True)
 parser.add_argument("--mcc", required=True)
 results = parser.parse_args() 
 
-print(results.dataset)
-print(results.reference)
-
-figs = {}
-axs = {}
-map_bbox = None
-plot_tower = None
-
-dataset = data.DataSet(results.dataset)
-towerlist = towers.TowerList(results.dataset, results.reference)
-
-for tower in towerlist.tower_list:
-    #print("Tower values: {0} {1} {2} {3}".format(tower.mcc, tower.mnc, tower.lac, tower.cellid))
-    #print("Result values: {0} {1} {2} {3}".format(results.mcc, results.mnc, results.lac, results.cellid))
-    if ((tower.mcc == results.mcc) and (tower.mnc == results.mnc) and (tower.lac == results.lac) and (tower.cellid == results.cellid)):
-        plot_tower = tower
-
-if plot_tower is None:
-    print("Tower not found based on inputs")
-    sys.exit()
-
-towerdataset = towers.TowerDataSet(dataset.data_matrix, plot_tower)
-
-points = towerdataset.points
-
-lon_series = [point.lon for point in points]
-lat_series = [point.lat for point in points]
-power_series = [point.signal for point in points]
-
-plot_map = plt.imread(dataset.map_path)
-map_bbox = [entry for entry in utils.get_bbox(dataset.bbox_path)[0]]
-print("map_bbox: {0}".format(map_bbox))
-
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-im = ax1.imshow(plot_map, zorder=0, extent = map_bbox, aspect = "equal")
-cm = plt.cm.get_cmap('gist_heat')
-
-plot = ax1.scatter(np.array(lon_series, dtype=float), np.array(lat_series, dtype=float), zorder=1, alpha=1.0, c = np.array(power_series, dtype=float), cmap=cm, s=40)
-ax1.scatter(float(plot_tower.lon), float(plot_tower.lat), zorder=1, alpha=1.0, color="blue")
-plt.xlim(map_bbox[0], map_bbox[1])
-plt.ylim(map_bbox[2], map_bbox[3])
-plt.ylabel("Latitude", rotation=90)
-plt.xlabel("Longitude", rotation=0)
-plt.title("Signal Power vs Position")
-ax = plt.axes()
-
-# Make sure to prevent lat/long from being displayed in scientific
-# notation
-ax.ticklabel_format(useOffset=False)
-
-cax = fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
-cbar = plt.colorbar(plot, cax = cax)
-cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
-
-plt.show()
+pt.plot_towerdata(results.dataset, results.reference, results.mcc, results.mnc, results.lac, results.cellid)

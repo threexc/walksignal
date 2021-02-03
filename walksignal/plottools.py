@@ -10,6 +10,7 @@ import requests
 import geopy
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import walksignal.data as data
 import walksignal.plottools as plottools
@@ -29,6 +30,7 @@ class PlotSetup:
         self.rating = self.dataset.rating
         self.speed_values = self.dataset.speed_values
         self.direction = self.dataset.direction
+        self.cellid = self.dataset.cellid
         self.plot_map = None
         self.map_bbox = None
         self.__get_map_and_bbox()
@@ -52,20 +54,8 @@ class PlotSetup:
     def __set_image(self):
         self.ax1.imshow(self.plot_map, zorder=0, extent = self.map_bbox[0], aspect="equal")
 
-def plot_gsp(datafile, reference_file):
-    setup = PlotSetup(datafile, reference_file)
-
-    signals = __plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
-    tower_plot = __plt_points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
-    __plt_set_bbox(plt, setup.map_bbox)
-    __plt_set_label()
-    __plt_set_colorbar(setup, signals)
-
-    plt.show()
-
 def plot_rating(datafile, reference_file):
     setup = PlotSetup(datafile, reference_file)
-    #np.set_printoptions(threshold=sys.maxsize)
 
     signals = __plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.rating, setup.cm)
     tower_plot = __plt_points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
@@ -130,6 +120,44 @@ def plot_positioning(datafile, reference_file):
 
     plt.show()
 
+def plot_gsp(datafile, reference_file):
+    setup = PlotSetup(datafile, reference_file)
+
+    signals = __plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
+    tower_plot = __plt_points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
+    __plt_set_bbox(plt, setup.map_bbox)
+    __plt_set_label()
+    __plt_set_colorbar(setup, signals)
+
+    plt.show()
+
+def plot_towerdata(datafile, reference_file, mcc, mnc, lac, cellid):
+    setup = PlotSetup(datafile, reference_file)
+    plot_tower = None
+
+    for tower in setup.tower_list.tower_list:
+        if ((tower.mcc == mcc) and (tower.mnc == mnc) and (tower.lac == lac) and (tower.cellid == cellid)):
+            plot_tower = tower
+
+    if plot_tower is None:
+        print("Tower not found based on inputs")
+        sys.exit()
+
+    towerdataset = towers.TowerDataSet(setup.dataset.data_matrix, plot_tower)
+    points = towerdataset.points
+    lon_series = np.array([point.lon for point in points], dtype=float)
+    lat_series = np.array([point.lat for point in points], dtype=float)
+    power_series = np.array([point.signal for point in points], dtype=float)
+
+    plot = __plt_signal_scatter(setup.ax1, lon_series, lat_series, power_series, setup.cm)
+    plot2 = __plt_points_scatter(setup.ax1, float(plot_tower.lon), float(plot_tower.lat))
+
+    __plt_set_bbox(plt, setup.map_bbox)
+    __plt_set_label()
+    __plt_set_colorbar(setup, plot)
+
+    plt.show()
+
 def __plt_set_label(x_label="Longitude", x_rot=0, y_label="Latitude", y_rot=90, title="Signal Power vs Position"):
     plt.ylabel(y_label, rotation=y_rot)
     plt.xlabel(x_label, rotation=x_rot)
@@ -139,10 +167,12 @@ def __plt_set_colorbar(setup, plot, label="Signal Power(dBm)"):
     ax = plt.axes()
     # Make sure to prevent lat/long from being displayed in scientific
     # notation
-    ax.ticklabel_format(useOffset=False)
+    fmtr = ticker.FormatStrFormatter('% 1.4f')
     cax = setup.fig.add_axes([ax.get_position().x1+0.01,ax.get_position().y0,0.02,ax.get_position().height])
     cbar = plt.colorbar(plot, cax = cax)
     cbar.ax.set_ylabel(label, rotation=270, labelpad=10)
+    ax.xaxis.set_major_formatter(fmtr)
+    ax.yaxis.set_major_formatter(fmtr)
 
 def __plt_set_bbox(plt, bbox):
     plt.xlim(bbox[0][0], bbox[0][1])
