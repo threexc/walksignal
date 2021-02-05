@@ -41,6 +41,7 @@ class PlotSetup:
         self.cm2 = plt.cm.get_cmap('gist_gray')
         self.avg_lat_diff = np.average(np.ediff1d(self.lat_data))
         self.avg_lon_diff = np.average(np.ediff1d(self.lon_data))
+        print(np.unique(self.cellid))
 
     def __get_tower_positions(self):
         for tower in self.tower_list.tower_list:
