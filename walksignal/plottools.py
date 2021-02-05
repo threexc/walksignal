@@ -7,11 +7,11 @@ import utm
 import math
 import argparse
 import requests
-import geopy
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from geopy import distance
 import walksignal.data as data
 import walksignal.plottools as plottools
 import walksignal.towers as towers
@@ -41,6 +41,7 @@ class PlotSetup:
         self.cm2 = plt.cm.get_cmap('gist_gray')
         self.avg_lat_diff = np.average(np.ediff1d(self.lat_data))
         self.avg_lon_diff = np.average(np.ediff1d(self.lon_data))
+        self.distances = np.array([])
         print(np.unique(self.cellid))
 
     def __get_tower_positions(self):
@@ -159,6 +160,25 @@ def plot_towerdata(datafile, reference_file, mcc, mnc, lac, cellid):
 
     plt.show()
 
+    for point in points:
+        distance = __get_distance(plot_tower.lat, plot_tower.lon, point.lat, point.lon)
+        setup.distances = np.concatenate([setup.distances, [float(distance * 1000)]])
+        #print("{:.1f}".format(distance * 1000))
+
+    print(setup.distances)
+    print(power_series)
+    #fig = plt.figure()
+    #scatter = setup.ax1.scatter(setup.distances, power_series, color="blue")
+    #plt.cla()
+    #plt.clf()
+    plt.xlabel("Distances (m)")
+    plt.ylabel("Power (dBm)")
+    plt.grid()
+
+    plt.suptitle("Power vs Distance")
+    plt.plot(setup.distances, power_series, 'o', color='black')
+    plt.show()
+
 def __plt_set_label(x_label="Longitude", x_rot=0, y_label="Latitude", y_rot=90, title="Signal Power vs Position"):
     plt.ylabel(y_label, rotation=y_rot)
     plt.xlabel(x_label, rotation=x_rot)
@@ -221,7 +241,7 @@ def __get_distance(lat1, lon1, lat2, lon2):
     coords_one = (lat1, lon1)
     coords_two = (lat2, lon2)
 
-    return geopy.distance.distance(coords_one, coords_two).km
+    return distance.distance(coords_one, coords_two).km
 
 # Equation 12 in A Random Walk Model of Wave Propagation
 def __rwm_fpd_recv_pwr(c_val, dist, dens, ab):
