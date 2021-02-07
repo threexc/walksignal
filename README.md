@@ -51,15 +51,28 @@ Example:
 
 `./prune_data data/lacolyoc/OpenCellID_2020*`
 
-### Using plot_gsp
+### Using ws
 
-plot_gsp allows visualizing the signal strength as a heatmap on a map generated
-with OpenStreetMap. Currently this only supports the map for the example data.
+The `ws` tool can be used to plot the following types of plots:
 
-To combine all data into a single plot:
-`./plot_gsp --reference data/oci_ref/302.csv --list [file1] [file2] ... [fileN]`
+For the entire data set:
+- Geospatial power measurements ("--gsp")
+- GPS rating ("--rating")
+- GPS positioning correction ("--pos")
 
-Both arguments are currently required.
+For a specific tower (also requires "--mcc", "--mnc", "--lac", and "--cellid" with numeric values):
+- Geospatial power measurements and power vs range plots ("--tower")
+
+In both cases, the reference file ("--reference") and dataset ("--dataset")
+are required.
+
+Examples:
+
+`./ws --tower --reference data/oci_ref/302.csv --dataset data/uottawa/combined_data.csv.pruned --cellid 9552457 --lac 29100 --mnc 720 --mcc 302`
+
+`./ws --pos --reference data/oci_ref/302.csv --dataset data/uottawa/combined_data.csv.pruned`
+
+`./ws --gsp --reference data/oci_ref/302.csv --dataset data/uottawa/combined_data.csv.pruned`
 
 ### Using plot_pair
 
