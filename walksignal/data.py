@@ -7,6 +7,42 @@ import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import walksignal.utils as utils
+from pymongo import MongoClient
+from bson.json_util import dumps
+
+class DataBase:
+    def __init__(self, filename):
+        self.data_file = filename
+        self.data_path = self.data_file.rsplit('/', 1)[0]
+        self.dataset_name = self.data_path.rsplit('/', 1)[1]
+        self.map_path = self.data_path + "/map.png"
+        self.bbox_path = self.data_path + "/bbox.txt"
+        self.mongo_client = MongoClient()
+        self.db = self.mongo_client.towerdata
+        self.collection = self.db['towerdata']
+        header = [ "num_id", "mcc", "mnc", "lac", "cellid", "lat", "lon", "signal", "measured_at", "rating", "speed", "direction", "act", "ta", "psc", "tac", "pci", "sid", "nid", "bid" ]
+        with open(self.data_file, 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                print(row)
+                doc={}
+                for n in range(0,len(header)-1):
+                    if (n == 0):
+                        numeric_id = str(row[0]) + str(row[1]) + str(row[2]) + str(row[3])
+                        doc[header[n]] = numeric_id
+                    else:
+                        print("n is {0}, row[n[ is {1}".format(n, row[n]))
+                        doc[header[n]] = row[n]
+
+                self.db.towerdata.insert(doc)
+
+        cursor = self.collection.find({})
+        with open('collection.json', 'w') as col:
+            col.write('[')
+            for document in cursor:
+                col.write(dumps(document))
+                col.write(',')
+            col.write(']')
 
 class DataPoint:
     def __init__(self, mcc, mnc, lac, cellid, lat, lon, signal,
@@ -27,6 +63,9 @@ class DataPoint:
         self.timing_advance = timing_advance
         self.tac = tac
         self.pci = pci
+        self.numeric_id = str(self.mcc) + str(self.mnc) + str(self.lac) + str(self.cellid)
+        print(self.numeric_id)
+
 
 class DataSet:
     def __init__(self, filename):
