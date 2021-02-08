@@ -24,14 +24,12 @@ class DataBase:
         with open(self.data_file, 'r') as csvfile:
             reader = csv.reader(csvfile)
             for row in reader:
-                print(row)
                 doc={}
                 for n in range(0,len(header)-1):
                     if (n == 0):
                         numeric_id = str(row[0]) + str(row[1]) + str(row[2]) + str(row[3])
                         doc[header[n]] = numeric_id
                     else:
-                        print("n is {0}, row[n[ is {1}".format(n, row[n]))
                         doc[header[n]] = row[n]
 
                 self.db.towerdata.insert(doc)
