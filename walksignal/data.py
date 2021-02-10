@@ -62,8 +62,6 @@ class DataPoint:
         self.tac = tac
         self.pci = pci
         self.numeric_id = str(self.mcc) + str(self.mnc) + str(self.lac) + str(self.cellid)
-        print(self.numeric_id)
-
 
 class DataSet:
     def __init__(self, filename):
