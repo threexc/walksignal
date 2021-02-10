@@ -2,6 +2,7 @@
 import csv
 import sys
 import numpy as np
+import scipy.special as sp
 import time
 import utm
 import math
@@ -163,20 +164,42 @@ def plot_towerdata(datafile, reference_file, mcc, mnc, lac, cellid):
     for point in points:
         distance = __get_distance(plot_tower.lat, plot_tower.lon, point.lat, point.lon)
         setup.distances = np.concatenate([setup.distances, [float(distance * 1000)]])
-        #print("{:.1f}".format(distance * 1000))
 
     print(setup.distances)
     print(power_series)
-    #fig = plt.figure()
-    #scatter = setup.ax1.scatter(setup.distances, power_series, color="blue")
-    #plt.cla()
-    #plt.clf()
     plt.xlabel("Distances (m)")
     plt.ylabel("Power (dBm)")
     plt.grid()
 
     plt.suptitle("Power vs Distance")
     plt.plot(setup.distances, power_series, 'o', color='black')
+
+    #rwm_simp_x = np.arange(1, 1000, 1)
+    #const_val = 0.01
+    #b_val = 0.02
+    #rwm_simp_y = 10 * np.log10(np.divide(np.exp(-1 * rwm_simp_x * b_val), np.square(rwm_simp_x)) * const_val)
+    #plt.plot(rwm_simp_x, rwm_simp_y, '-', color='blue')
+
+    rwm_x = np.linspace(1, 500, 250) 
+    obs_dens = 0.2
+    absorption = 0.5
+    external_multiplier = obs_dens * absorption / (2 * np.pi)
+    print("external multiplier: {0}".format(external_multiplier))
+    internal_multiplier = (1 - absorption) * obs_dens
+    print("internal multiplier: {0}".format(internal_multiplier))
+    exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
+    print("exp_mult_1: {0}".format(exp_mult_1))
+    exp_mult_2 = -1 * (1 - np.square(1 - absorption)) * obs_dens
+    print("exp_mult_2: {0}".format(exp_mult_2))
+    bessel = internal_multiplier * sp.kv(0, exp_mult_1 * rwm_x)
+    print(bessel)
+    first_component = internal_multiplier * np.multiply(rwm_x, bessel)
+    second_component = np.exp(exp_mult_2 * rwm_x)
+    g_r = external_multiplier * np.multiply(np.add(first_component, second_component), rwm_x)
+    rwm_y = 10 * np.log10(g_r / (absorption * obs_dens)) + 30
+
+    plt.plot(rwm_x, rwm_y, '-', color='blue')
+
     plt.show()
 
 def __plt_set_label(x_label="Longitude", x_rot=0, y_label="Latitude", y_rot=90, title="Signal Power vs Position"):
