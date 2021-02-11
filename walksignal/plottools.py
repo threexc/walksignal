@@ -174,31 +174,13 @@ def plot_towerdata(datafile, reference_file, mcc, mnc, lac, cellid):
     plt.suptitle("Power vs Distance")
     plt.plot(setup.distances, power_series, 'o', color='black')
 
-    #rwm_simp_x = np.arange(1, 1000, 1)
-    #const_val = 0.01
-    #b_val = 0.02
-    #rwm_simp_y = 10 * np.log10(np.divide(np.exp(-1 * rwm_simp_x * b_val), np.square(rwm_simp_x)) * const_val)
-    #plt.plot(rwm_simp_x, rwm_simp_y, '-', color='blue')
+    rwm_x = np.linspace(1, 350, 250) 
 
-    rwm_x = np.linspace(1, 500, 250) 
-    obs_dens = 0.2
-    absorption = 0.5
-    external_multiplier = obs_dens * absorption / (2 * np.pi)
-    print("external multiplier: {0}".format(external_multiplier))
-    internal_multiplier = (1 - absorption) * obs_dens
-    print("internal multiplier: {0}".format(internal_multiplier))
-    exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
-    print("exp_mult_1: {0}".format(exp_mult_1))
-    exp_mult_2 = -1 * (1 - np.square(1 - absorption)) * obs_dens
-    print("exp_mult_2: {0}".format(exp_mult_2))
-    bessel = internal_multiplier * sp.kv(0, exp_mult_1 * rwm_x)
-    print(bessel)
-    first_component = internal_multiplier * np.multiply(rwm_x, bessel)
-    second_component = np.exp(exp_mult_2 * rwm_x)
-    g_r = external_multiplier * np.multiply(np.add(first_component, second_component), rwm_x)
-    rwm_y = 10 * np.log10(g_r / (absorption * obs_dens)) + 30
-
-    plt.plot(rwm_x, rwm_y, '-', color='blue')
+    __plt_rwm_fpd(0.2, 0.5, rwm_x, color="blue")
+    __plt_rwm_fpd(0.5, 0.5, rwm_x, color="blue", marker="--")
+    __plt_rwm_fpd(0.5, 0.2, rwm_x, color="blue", marker="-.")
+    __plt_rwm_fpd(0.2, 0.2, rwm_x, color="blue", marker=":")
+    __plt_rwm_fpd(0.9, 0.1, rwm_x, color="red", marker=":")
 
     plt.show()
 
@@ -227,6 +209,24 @@ def __plt_signal_scatter(ax, lon_data, lat_data, signal_data, cm):
 
 def __plt_points_scatter(ax, lon_data, lat_data, col="blue"):
     return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, s=20, color=col)
+
+# Equation 12 in A Random Walk Model of Wave Propagation
+def __plt_rwm_fpd(obs_dens, absorption, x_range, color="red", marker="-"):
+    external_multiplier = obs_dens * absorption / (2 * np.pi)
+    print("external multiplier: {0}".format(external_multiplier))
+    internal_multiplier = (1 - absorption) * obs_dens
+    print("internal multiplier: {0}".format(internal_multiplier))
+    exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
+    print("exp_mult_1: {0}".format(exp_mult_1))
+    exp_mult_2 = -1 * (1 - np.square(1 - absorption)) * obs_dens
+    print("exp_mult_2: {0}".format(exp_mult_2))
+    bessel = internal_multiplier * sp.kv(0, exp_mult_1 * x_range)
+    first_component = internal_multiplier * np.multiply(x_range, bessel)
+    second_component = np.exp(exp_mult_2 * x_range)
+    g_r = external_multiplier * np.multiply(np.add(first_component, second_component), x_range)
+    rwm_y = 10 * np.log10(g_r / (absorption * obs_dens)) + 30
+
+    plt.plot(x_range, rwm_y, linestyle=marker, color=color)
 
 def __get_tower_positions(towerlist):
     tower_lat_data = np.array([])
@@ -268,7 +268,7 @@ def __get_distance(lat1, lon1, lat2, lon2):
 
 # Equation 12 in A Random Walk Model of Wave Propagation
 def __rwm_fpd_recv_pwr(c_val, dist, dens, ab):
-    # Equation 8 in A Random Walk Model of Wave Propagation
+    # equation 8 in a random walk model of wave propagation
     arg = 1 - (1 - ab)**2
     g_r = (ab * dens * math.exp(-1 * (1 - arg * dens * dist)) + (1 - y) * dens * dist * sp.special.kv(0, math.sqrt(arg)) * dens * dist) / (2*math.pi*dist)
     output = (c_val / (dist**2)) * (dist**2) * g_r / (dens * ab)
