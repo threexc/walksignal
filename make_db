@@ -1,9 +1,0 @@
-#!/usr/bin/env python3
-import argparse
-import walksignal.data as wsd
-
-parser = argparse.ArgumentParser() 
-parser.add_argument("--dataset", required=True) 
-results = parser.parse_args() 
-
-wsd.DataBase(results.dataset)

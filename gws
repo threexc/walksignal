@@ -1,0 +1,247 @@
+#!/usr/bin/python3
+
+from PyQt5 import QtWidgets, QtCore, QtGui
+from pyqtgraph import PlotWidget, plot
+import pyqtgraph as pg
+from pathlib import Path
+import sys  # We need sys so that we can pass argv to QApplication
+import os
+import time
+from random import randint
+import walksignal.data as ds
+import walksignal.plottools as pt
+
+class MainWindow(QtWidgets.QMainWindow):
+
+    def __init__(self, *args, **kwargs):
+        super(MainWindow, self).__init__(*args, **kwargs)
+
+        self.setWindowTitle("walksignal 0.0.1")
+        self.datafile = None
+        self.reference = None
+        self.towerset = None
+        self.absorption = 0.5
+        self.density = 0.5
+        self.x_range = None
+        self.y_range = None
+        self.tower = None
+        self.tower_x = None
+        self.tower_y = None
+
+        self.x = list(range(100))  # 100 time points
+        self.y = [randint(0,100) for _ in range(100)]  # 100 data points
+
+        self.setupUI()
+
+    def setupUI(self):
+
+        self.main_widget = pg.PlotWidget()
+        self.main_widget.setBackground('w')
+        self.pen = pg.mkPen(color=(255, 0, 0))
+
+        self.data_line = self.main_widget.plot(self.x, self.y, pen=self.pen)
+        #self.tower_data_line = self.main_widget.plot([0], [0], symbol='o')
+        self.tower_data_line = pg.ScatterPlotItem(pen=pg.mkPen(width=5, color='b'), symbol='o', size=1)
+        self.main_widget.addItem(self.tower_data_line)
+        self.styles = {'color':'b', 'font-size':'18px'}
+        self.main_widget.setLabel('left', "Power (dBm)", **self.styles)
+        self.main_widget.setLabel('bottom', "Distance (m)", **self.styles)
+
+        self.setupSliders()
+        self.setupComboBoxes()
+        self.setupLoadButtons()
+        self.setupFileMenuButtons()
+        self.setupMenuBar()
+        self.setupSideBar()
+
+        self.main_layout = QtWidgets.QHBoxLayout()
+        self.main_layout.addWidget(self.main_widget)
+        self.main_layout.addWidget(self.sidebarWidget)
+        self.main_layout.setStretch(0, 200)
+        self.main_layout.setStretch(1, 80)
+        self.main_widget = QtWidgets.QWidget()
+        self.main_widget.setLayout(self.main_layout)
+        self.setCentralWidget(self.main_widget)
+
+    def setupSliders(self):
+        self.density_box = QtWidgets.QHBoxLayout()
+        self.absorption_box = QtWidgets.QHBoxLayout()
+
+        self.density_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
+        self.density_slider.setRange(1, 100)
+        self.density_slider.setValue(50)
+        self.density_slider.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.density_slider_label = QtWidgets.QLabel('Density', self)
+        self.density_value_label = QtWidgets.QLabel('0.5', self)
+
+        self.absorption_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
+        self.absorption_slider.setRange(1, 100)
+        self.absorption_slider.setValue(50)
+        self.absorption_slider.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.absorption_slider_label = QtWidgets.QLabel('Absorption', self)
+        self.absorption_value_label = QtWidgets.QLabel('0.5', self)
+
+        self.density_slider.valueChanged[int].connect(self.sliderUpdate)
+        self.absorption_slider.valueChanged[int].connect(self.sliderUpdate)
+
+        self.density_box.addWidget(self.density_slider_label)
+        self.density_box.addWidget(self.density_slider)
+        self.density_box.addWidget(self.density_value_label)
+        self.absorption_box.addWidget(self.absorption_slider_label)
+        self.absorption_box.addWidget(self.absorption_slider)
+        self.absorption_box.addWidget(self.absorption_value_label)
+        print("Set up density_slider")
+        print("Set up absorption_slider")
+
+    def setupComboBoxes(self):
+        self.cellid_box = QtWidgets.QHBoxLayout()
+        self.mcc_box = QtWidgets.QHBoxLayout()
+        self.mnc_box = QtWidgets.QHBoxLayout()
+        self.lac_box = QtWidgets.QHBoxLayout()
+
+        self.cellid_label = QtWidgets.QLabel('Cell ID', self)
+        self.mcc_label = QtWidgets.QLabel('MCC', self)
+        self.mnc_label = QtWidgets.QLabel('MNC', self)
+        self.lac_label = QtWidgets.QLabel('LAC', self)
+
+        self.cellid_combo = QtWidgets.QComboBox(self)
+        self.mcc_combo = QtWidgets.QComboBox(self)
+        self.mnc_combo = QtWidgets.QComboBox(self)
+        self.lac_combo = QtWidgets.QComboBox(self)
+
+        self.cellid_box.addWidget(self.cellid_label)
+        self.cellid_box.addWidget(self.cellid_combo)
+
+        self.mcc_box.addWidget(self.mcc_label)
+        self.mcc_box.addWidget(self.mcc_combo)
+        self.mnc_box.addWidget(self.mnc_label)
+        self.mnc_box.addWidget(self.mnc_combo)
+        self.lac_box.addWidget(self.lac_label)
+        self.lac_box.addWidget(self.lac_combo)
+        print("Set up combo boxes")
+
+    def setupLoadButtons(self):
+        self.data_load_button = QtWidgets.QPushButton('Load Dataset', self)
+        self.data_load_button.clicked.connect(self.setDataSource)
+
+        self.tower_load_button = QtWidgets.QPushButton('Load Tower Data', self)
+        self.tower_load_button.clicked.connect(self.loadTowerData)
+        print("Set up buttons")
+
+    def setupFileMenuButtons(self):
+        self.selectFile = QtWidgets.QAction(QtGui.QIcon('open.png'), 'Select File', self)
+        self.selectFile.setShortcut('Ctrl+O')
+        self.selectFile.setStatusTip('Select New File')
+        self.selectFile.triggered.connect(self.showFileDialog)
+
+        self.referenceFile = QtWidgets.QAction(QtGui.QIcon('open.png'), 'Select Reference File', self)
+        self.referenceFile.setShortcut('Ctrl+R')
+        self.referenceFile.setStatusTip('Select Reference File')
+        self.referenceFile.triggered.connect(self.showReferenceDialog)
+        print("Set up file menu buttons")
+
+    def setupMenuBar(self):
+        self.menubar = self.menuBar()
+        self.fileMenu = self.menubar.addMenu('&File')
+        self.fileMenu.addAction(self.selectFile)
+        self.fileMenu.addAction(self.referenceFile)
+        print("Set up menu bar")
+
+    def setupSideBar(self):
+        self.sidebar = QtWidgets.QVBoxLayout()
+        self.sidebar.addWidget(self.data_load_button)
+        self.sidebar.addLayout(self.density_box)
+        self.sidebar.addLayout(self.absorption_box)
+        self.sidebar.addLayout(self.cellid_box)
+        self.sidebar.addLayout(self.mcc_box)
+        self.sidebar.addLayout(self.mnc_box)
+        self.sidebar.addLayout(self.lac_box)
+        self.sidebar.addWidget(self.tower_load_button)
+        self.sidebarWidget = QtWidgets.QWidget()
+        self.sidebarWidget.setLayout(self.sidebar)
+        print("Set up sidebar")
+
+    def showFileDialog(self):
+        home_dir = str(Path.home)
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', home_dir)
+
+        if fname[0]:
+            print("Selected datafile {0}".format(fname[0]))
+            self.datafile = fname[0]
+
+    def showReferenceDialog(self):
+        home_dir = str(Path.home)
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', home_dir)
+
+        if fname[0]:
+            print("Selected reference file {0}".format(fname[0]))
+            self.reference = fname[0]
+
+    def setDataSource(self):
+        if self.reference and self.datafile:
+            self.loadDataSet()
+        elif self.reference:
+            print("datafile not selected")
+        elif self.datafile:
+            print("reference file not selected")
+        else:
+            print("No files selected. Select a datafile and a reference file")
+
+    def loadDataSet(self):
+        print("Loading data...")
+        self.start_time = time.time()
+        self.towerset = pt.PlotData(self.datafile, self.reference)
+        self.duration = time.time() - self.start_time
+        print("Done loading data in {:.2f} seconds".format(self.duration))
+        print("Setting up tower selectors...")
+        self.cellid_combo.clear()
+        self.mcc_combo.clear()
+        self.mnc_combo.clear()
+        self.lac_combo.clear()
+
+        for cellid in self.towerset.cellid_u:
+            self.cellid_combo.addItem(str(cellid))
+
+        for mcc in self.towerset.mcc_u:
+            self.mcc_combo.addItem(str(mcc))
+
+        for mnc in self.towerset.mnc_u:
+            self.mnc_combo.addItem(str(mnc))
+
+        for lac in self.towerset.lac_u:
+            self.lac_combo.addItem(str(lac))
+
+        print("Generating default plot...")
+        self.updatePlotData()
+        print("Done.")
+
+    def sliderUpdate(self):
+        self.density = self.density_slider.value() / 100.0
+        self.absorption = self.absorption_slider.value() / 100.0
+        self.density_value_label.setText(str(self.density))
+        self.absorption_value_label.setText(str(self.absorption))
+        print("density {0}, absorption {1}".format(self.density, self.absorption))
+        if self.towerset:
+            self.updatePlotData()
+
+    def loadTowerData(self):
+        print("Loading tower data...")
+        self.tower = self.towerset.tower_list.get_tower_data(self.mcc_combo.currentText(), self.mnc_combo.currentText(), self.lac_combo.currentText(), self.cellid_combo.currentText())
+        print("Loaded data for {0} {1} {2} {3}".format(self.tower.mcc, self.tower.mnc, self.tower.lac, self.tower.cellid))
+        self.plotTowerData()
+
+    def plotTowerData(self):
+        self.tower_data_line.setData(self.tower.distances, self.tower.signal_power, symbol='o')
+
+    def updatePlotData(self):
+        self.x_range = self.towerset.plotrange
+        self.y_range = pt.gplt_rwm_fpd3d(self.density, self.absorption, self.x_range)
+        self.data_line.setData(self.x_range, self.y_range)
+        if self.tower:
+            self.tower_data_line.setData(self.tower.distances, self.tower.signal_power, symbol='o')
+
+
+app = QtWidgets.QApplication(sys.argv)
+w = MainWindow()
+w.show()
+sys.exit(app.exec_())

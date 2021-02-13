@@ -18,58 +18,59 @@ import walksignal.plottools as plottools
 import walksignal.towers as towers
 import walksignal.utils as utils
 
-class PlotSetup:
+class PlotData:
     def __init__(self, datafile, reference_file):
-        self.tower_list = towers.TowerList(datafile, reference_file)
-        self.tower_lat_data = np.array([])
-        self.tower_lon_data = np.array([])
-        self.__get_tower_positions()
         self.dataset = data.DataSet(datafile)
+        self.tower_list = towers.TowerList(self.dataset.data_matrix, reference_file)
+        self.tower_lat_data = self.tower_list.lats
+        self.tower_lon_data = self.tower_list.lons
         self.lat_data = self.dataset.lat
         self.lon_data = self.dataset.lon
         self.signal_data = self.dataset.signal_range
         self.rating = self.dataset.rating
         self.speed_values = self.dataset.speed_values
         self.direction = self.dataset.direction
+        self.mcc = self.dataset.mcc
+        self.mnc = self.dataset.mnc
+        self.lac = self.dataset.lac
         self.cellid = self.dataset.cellid
+        self.mcc_u = np.unique(self.mcc)
+        self.mnc_u = np.unique(self.mnc)
+        self.lac_u = np.unique(self.lac)
+        self.cellid_u = np.unique(self.cellid)
         self.plot_map = None
         self.map_bbox = None
-        self.__get_map_and_bbox()
+        self.get_map_and_bbox()
         self.fig = plt.figure()
         self.ax1 = self.fig.add_subplot(111)
-        self.__set_image()
+        self.set_image()
         self.cm = plt.cm.get_cmap('gist_heat')
         self.cm2 = plt.cm.get_cmap('gist_gray')
         self.avg_lat_diff = np.average(np.ediff1d(self.lat_data))
         self.avg_lon_diff = np.average(np.ediff1d(self.lon_data))
         self.distances = np.array([])
-        print(np.unique(self.cellid))
+        self.plotrange = np.linspace(1, 500, 250)
 
-    def __get_tower_positions(self):
-        for tower in self.tower_list.tower_list:
-            self.tower_lat_data = np.concatenate([self.tower_lat_data, [float(tower.lat)]])
-            self.tower_lon_data = np.concatenate([self.tower_lon_data, [float(tower.lon)]])
-
-    def __get_map_and_bbox(self):
+    def get_map_and_bbox(self):
         self.plot_map = plt.imread(self.dataset.map_path)
         self.map_bbox = [entry for entry in utils.get_bbox(self.dataset.bbox_path)]
 
-    def __set_image(self):
+    def set_image(self):
         self.ax1.imshow(self.plot_map, zorder=0, extent = self.map_bbox[0], aspect="equal")
 
 def plot_rating(datafile, reference_file):
-    setup = PlotSetup(datafile, reference_file)
+    setup = PlotData(datafile, reference_file)
 
-    signals = __plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.rating, setup.cm)
-    tower_plot = __plt_points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
-    __plt_set_bbox(plt, setup.map_bbox)
-    __plt_set_label(title="Rating vs Position")
-    __plt_set_colorbar(setup, signals, "Rating (m)")
+    signals = plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.rating, setup.cm)
+    tower_plot = plt_points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
+    plt_set_bbox(plt, setup.map_bbox)
+    plt_set_label(title="Rating vs Position")
+    plt_set_colorbar(setup, signals, "Rating (m)")
     
     plt.show()
 
 def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_title="X vs Y"):
-    scatter = __plt_points_scatter(x_axis, y_axis, c = annotation, s = 2)
+    scatter = plt_points_scatter(x_axis, y_axis, c = annotation, s = 2)
     if annotation is not None:
         for element in range(len(x_axis)):
             if annotation[element] is not None:
@@ -92,7 +93,7 @@ def plot_data(x_axis, y_axis, annotation=None, x_label="X", y_label="Y", plot_ti
     plt.show()
 
 def plot_positioning(datafile, reference_file):
-    setup = PlotSetup(datafile, reference_file)
+    setup = PlotData(datafile, reference_file)
     corrected_lat = []
     corrected_lon = []
 
@@ -101,7 +102,7 @@ def plot_positioning(datafile, reference_file):
         corrected_lon.append(setup.lon_data[entry])
     for entry in range(len(setup.lat_data) - 1):
         corr = 1.01
-        proj_lat, proj_lon = __project_next_position(setup.lat_data[entry], setup.lon_data[entry], setup.speed_values[entry], setup.direction[entry])
+        proj_lat, proj_lon = utils.project_next_position(setup.lat_data[entry], setup.lon_data[entry], setup.speed_values[entry], setup.direction[entry])
         proj_diff_lat = np.absolute(setup.lat_data[entry] - proj_lat)
         proj_diff_lon = np.absolute(setup.lon_data[entry] - proj_lon)
         orig_diff_lat = np.absolute(setup.lat_data[entry] - setup.lat_data[entry+1])
@@ -115,27 +116,27 @@ def plot_positioning(datafile, reference_file):
         elif (orig_diff_lon > proj_diff_lon * corr):
             corrected_lon[entry] = proj_lon
 
-    plot = __plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
-    plot2 = __plt_signal_scatter(setup.ax1, corrected_lon, corrected_lat, setup.signal_data, setup.cm2)
-    __plt_set_bbox(plt, setup.map_bbox)
-    __plt_set_label()
-    __plt_set_colorbar(setup, plot)
+    plot = plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
+    plot2 = plt_signal_scatter(setup.ax1, corrected_lon, corrected_lat, setup.signal_data, setup.cm2)
+    plt_set_bbox(plt, setup.map_bbox)
+    plt_set_label()
+    plt_set_colorbar(setup, plot)
 
     plt.show()
 
 def plot_gsp(datafile, reference_file):
-    setup = PlotSetup(datafile, reference_file)
+    setup = PlotData(datafile, reference_file)
 
-    signals = __plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
-    tower_plot = __plt_points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
-    __plt_set_bbox(plt, setup.map_bbox)
-    __plt_set_label()
-    __plt_set_colorbar(setup, signals)
+    signals = plt_signal_scatter(setup.ax1, setup.lon_data, setup.lat_data, setup.signal_data, setup.cm)
+    tower_plot = plt_points_scatter(setup.ax1, setup.tower_lon_data, setup.tower_lat_data, "blue")
+    plt_set_bbox(plt, setup.map_bbox)
+    plt_set_label()
+    plt_set_colorbar(setup, signals)
 
     plt.show()
 
 def plot_towerdata(datafile, reference_file, mcc, mnc, lac, cellid):
-    setup = PlotSetup(datafile, reference_file)
+    setup = PlotData(datafile, reference_file)
     plot_tower = None
 
     for tower in setup.tower_list.tower_list:
@@ -146,54 +147,46 @@ def plot_towerdata(datafile, reference_file, mcc, mnc, lac, cellid):
         print("Tower not found based on inputs")
         sys.exit()
 
-    towerdataset = towers.TowerDataSet(setup.dataset.data_matrix, plot_tower)
-    points = towerdataset.points
+    points = plot_tower.data_points
     lon_series = np.array([point.lon for point in points], dtype=float)
     lat_series = np.array([point.lat for point in points], dtype=float)
-    power_series = np.array([point.signal for point in points], dtype=float)
 
-    plot = __plt_signal_scatter(setup.ax1, lon_series, lat_series, power_series, setup.cm)
-    plot2 = __plt_points_scatter(setup.ax1, float(plot_tower.lon), float(plot_tower.lat))
+    plot = plt_signal_scatter(setup.ax1, lon_series, lat_series, plot_tower.signal_power, setup.cm)
+    plot2 = plt_points_scatter(setup.ax1, float(plot_tower.lon), float(plot_tower.lat))
 
-    __plt_set_bbox(plt, setup.map_bbox)
-    __plt_set_label()
-    __plt_set_colorbar(setup, plot)
+    plt_set_bbox(plt, setup.map_bbox)
+    plt_set_label()
+    plt_set_colorbar(setup, plot)
 
     plt.show()
 
-    for point in points:
-        distance = __get_distance(plot_tower.lat, plot_tower.lon, point.lat, point.lon)
-        setup.distances = np.concatenate([setup.distances, [float(distance * 1000)]])
-
-    print(setup.distances)
-    print(power_series)
     plt.xlabel("Distances (m)")
     plt.ylabel("Power (dBm)")
     plt.grid()
 
     plt.suptitle("Power vs Distance")
-    plt.plot(setup.distances, power_series, 'o', color='black')
+    plt.plot(plot_tower.distances, plot_tower.signal_power, 'o', color='black')
 
     rwm_x = np.linspace(1, 350, 250) 
 
-    __plt_rwm_fpd2d(0.2, 0.5, rwm_x, color="blue")
-    __plt_rwm_fpd2d(0.5, 0.5, rwm_x, color="blue", marker="--")
-    __plt_rwm_fpd2d(0.5, 0.2, rwm_x, color="blue", marker="-.")
-    __plt_rwm_fpd2d(0.2, 0.2, rwm_x, color="blue", marker=":")
+    plt_rwm_fpd2d(0.2, 0.5, rwm_x, color="blue")
+    plt_rwm_fpd2d(0.5, 0.5, rwm_x, color="blue", marker="--")
+    plt_rwm_fpd2d(0.5, 0.2, rwm_x, color="blue", marker="-.")
+    plt_rwm_fpd2d(0.2, 0.2, rwm_x, color="blue", marker=":")
 
-    __plt_rwm_fpd3d(0.2, 0.5, rwm_x, color="red")
-    __plt_rwm_fpd3d(0.5, 0.5, rwm_x, color="red", marker="--")
-    __plt_rwm_fpd3d(0.5, 0.2, rwm_x, color="red", marker="-.")
-    __plt_rwm_fpd3d(0.2, 0.2, rwm_x, color="red", marker=":")
+    plt_rwm_fpd3d(0.2, 0.5, rwm_x, color="red")
+    plt_rwm_fpd3d(0.5, 0.5, rwm_x, color="red", marker="--")
+    plt_rwm_fpd3d(0.5, 0.2, rwm_x, color="red", marker="-.")
+    plt_rwm_fpd3d(0.2, 0.2, rwm_x, color="red", marker=":")
 
     plt.show()
 
-def __plt_set_label(x_label="Longitude", x_rot=0, y_label="Latitude", y_rot=90, title="Signal Power vs Position"):
+def plt_set_label(x_label="Longitude", x_rot=0, y_label="Latitude", y_rot=90, title="Signal Power vs Position"):
     plt.ylabel(y_label, rotation=y_rot)
     plt.xlabel(x_label, rotation=x_rot)
     plt.title(title)
 
-def __plt_set_colorbar(setup, plot, label="Signal Power(dBm)"):
+def plt_set_colorbar(setup, plot, label="Signal Power(dBm)"):
     ax = plt.axes()
     # Make sure to prevent lat/long from being displayed in scientific
     # notation
@@ -204,18 +197,18 @@ def __plt_set_colorbar(setup, plot, label="Signal Power(dBm)"):
     ax.xaxis.set_major_formatter(fmtr)
     ax.yaxis.set_major_formatter(fmtr)
 
-def __plt_set_bbox(plt, bbox):
+def plt_set_bbox(plt, bbox):
     plt.xlim(bbox[0][0], bbox[0][1])
     plt.ylim(bbox[0][2], bbox[0][3])
 
-def __plt_signal_scatter(ax, lon_data, lat_data, signal_data, cm):
+def plt_signal_scatter(ax, lon_data, lat_data, signal_data, cm):
     return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, s=20, c=signal_data, cmap=cm)
 
-def __plt_points_scatter(ax, lon_data, lat_data, col="blue"):
+def plt_points_scatter(ax, lon_data, lat_data, col="blue"):
     return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, s=20, color=col)
 
 # Equation 12 in A Random Walk Model of Wave Propagation
-def __plt_rwm_fpd2d(obs_dens, absorption, x_range, color="red", marker="-"):
+def plt_rwm_fpd2d(obs_dens, absorption, x_range, color="red", marker="-"):
     external_multiplier = obs_dens * absorption / (2 * np.pi)
     internal_multiplier = (1 - absorption) * obs_dens
     exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
@@ -229,7 +222,7 @@ def __plt_rwm_fpd2d(obs_dens, absorption, x_range, color="red", marker="-"):
     plt.plot(x_range, rwm_y, linestyle=marker, color=color)
 
 # Equation 12 in A Random Walk Model of Wave Propagation
-def __plt_rwm_fpd3d(obs_dens, absorption, x_range, color="red", marker="-"):
+def plt_rwm_fpd3d(obs_dens, absorption, x_range, color="red", marker="-"):
     external_multiplier = obs_dens * absorption / (4 * np.pi)
     internal_multiplier = (1 - absorption) * obs_dens
     exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
@@ -241,48 +234,29 @@ def __plt_rwm_fpd3d(obs_dens, absorption, x_range, color="red", marker="-"):
 
     plt.plot(x_range, rwm_y, linestyle=marker, color=color)
 
-def __get_tower_positions(towerlist):
-    tower_lat_data = np.array([])
-    tower_lon_data = np.array([])
-    for tower in towerlist:
-        tower_lat_data = np.concatenate([tower_lat_data, [float(tower.lat)]])
-        tower_lon_data = np.concatenate([tower_lon_data, [float(tower.lon)]])
-    return tower_lat_data, tower_lon_data
+# Equation 12 in A Random Walk Model of Wave Propagation
+def gplt_rwm_fpd2d(obs_dens, absorption, x_range):
+    external_multiplier = obs_dens * absorption / (2 * np.pi)
+    internal_multiplier = (1 - absorption) * obs_dens
+    exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
+    exp_mult_2 = -1 * (1 - np.square(1 - absorption)) * obs_dens
+    bessel = internal_multiplier * sp.kv(0, exp_mult_1 * x_range)
+    first_component = internal_multiplier * np.multiply(x_range, bessel)
+    second_component = np.exp(exp_mult_2 * x_range)
+    g_r = external_multiplier * np.multiply(np.add(first_component, second_component), x_range)
+    rwm_y = 10 * np.log10(g_r / (absorption * obs_dens)) + 30
 
-def __convert_to_xy(lat, lon):
-    x, y, zn, zl = utm.from_latlon(lat, lon)
-    return x, y, zn, zl
-
-def __convert_to_latlon(x, y, zn, zl):
-    lat, lon = utm.to_latlon(x, y, zn, zl)
-    return lat, lon
-
-def __advance_coordinates(x, y, speed, direction):
-    # north is 0, east is 90
-    x_advance = speed * -1 * math.cos(direction + math.pi/2)
-    y_advance = speed * math.sin(direction + math.pi/2)
-    adj_x = x + x_advance
-    adj_y = y + y_advance
-
-    return adj_x, adj_y
-
-def __project_next_position(lat, lon, speed, direction):
-    x, y, zn, zl = __convert_to_xy(lat, lon)
-    adj_x, adj_y = __advance_coordinates(x, y, speed, direction)
-    lat_proj, lon_proj = __convert_to_latlon(adj_x, adj_y, zn, zl)
-    return lat_proj, lon_proj
-
-def __get_distance(lat1, lon1, lat2, lon2):
-    earth_radius = 6373.0
-    coords_one = (lat1, lon1)
-    coords_two = (lat2, lon2)
-
-    return distance.distance(coords_one, coords_two).km
+    return rwm_y
 
 # Equation 12 in A Random Walk Model of Wave Propagation
-def __rwm_fpd_recv_pwr(c_val, dist, dens, ab):
-    # equation 8 in a random walk model of wave propagation
-    arg = 1 - (1 - ab)**2
-    g_r = (ab * dens * math.exp(-1 * (1 - arg * dens * dist)) + (1 - y) * dens * dist * sp.special.kv(0, math.sqrt(arg)) * dens * dist) / (2*math.pi*dist)
-    output = (c_val / (dist**2)) * (dist**2) * g_r / (dens * ab)
-    return output
+def gplt_rwm_fpd3d(obs_dens, absorption, x_range):
+    external_multiplier = obs_dens * absorption / (4 * np.pi)
+    internal_multiplier = (1 - absorption) * obs_dens
+    exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
+    exp_mult_2 = -1 * (1 - np.square(1 - absorption)) * obs_dens
+    first_component = internal_multiplier * np.multiply(x_range, np.exp(-1 * exp_mult_1 * x_range))
+    second_component = np.exp(exp_mult_2 * x_range)
+    g_r = external_multiplier * np.multiply(np.add(first_component, second_component), x_range)
+    rwm_y = 10 * np.log10(g_r / (absorption * obs_dens)) + 30
+
+    return rwm_y
