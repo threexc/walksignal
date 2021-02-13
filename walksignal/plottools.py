@@ -176,11 +176,15 @@ def plot_towerdata(datafile, reference_file, mcc, mnc, lac, cellid):
 
     rwm_x = np.linspace(1, 350, 250) 
 
-    __plt_rwm_fpd(0.2, 0.5, rwm_x, color="blue")
-    __plt_rwm_fpd(0.5, 0.5, rwm_x, color="blue", marker="--")
-    __plt_rwm_fpd(0.5, 0.2, rwm_x, color="blue", marker="-.")
-    __plt_rwm_fpd(0.2, 0.2, rwm_x, color="blue", marker=":")
-    __plt_rwm_fpd(0.9, 0.1, rwm_x, color="red", marker=":")
+    __plt_rwm_fpd2d(0.2, 0.5, rwm_x, color="blue")
+    __plt_rwm_fpd2d(0.5, 0.5, rwm_x, color="blue", marker="--")
+    __plt_rwm_fpd2d(0.5, 0.2, rwm_x, color="blue", marker="-.")
+    __plt_rwm_fpd2d(0.2, 0.2, rwm_x, color="blue", marker=":")
+
+    __plt_rwm_fpd3d(0.2, 0.5, rwm_x, color="red")
+    __plt_rwm_fpd3d(0.5, 0.5, rwm_x, color="red", marker="--")
+    __plt_rwm_fpd3d(0.5, 0.2, rwm_x, color="red", marker="-.")
+    __plt_rwm_fpd3d(0.2, 0.2, rwm_x, color="red", marker=":")
 
     plt.show()
 
@@ -211,17 +215,26 @@ def __plt_points_scatter(ax, lon_data, lat_data, col="blue"):
     return ax.scatter(lon_data, lat_data, zorder=1, alpha=1.0, s=20, color=col)
 
 # Equation 12 in A Random Walk Model of Wave Propagation
-def __plt_rwm_fpd(obs_dens, absorption, x_range, color="red", marker="-"):
+def __plt_rwm_fpd2d(obs_dens, absorption, x_range, color="red", marker="-"):
     external_multiplier = obs_dens * absorption / (2 * np.pi)
-    print("external multiplier: {0}".format(external_multiplier))
     internal_multiplier = (1 - absorption) * obs_dens
-    print("internal multiplier: {0}".format(internal_multiplier))
     exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
-    print("exp_mult_1: {0}".format(exp_mult_1))
     exp_mult_2 = -1 * (1 - np.square(1 - absorption)) * obs_dens
-    print("exp_mult_2: {0}".format(exp_mult_2))
     bessel = internal_multiplier * sp.kv(0, exp_mult_1 * x_range)
     first_component = internal_multiplier * np.multiply(x_range, bessel)
+    second_component = np.exp(exp_mult_2 * x_range)
+    g_r = external_multiplier * np.multiply(np.add(first_component, second_component), x_range)
+    rwm_y = 10 * np.log10(g_r / (absorption * obs_dens)) + 30
+
+    plt.plot(x_range, rwm_y, linestyle=marker, color=color)
+
+# Equation 12 in A Random Walk Model of Wave Propagation
+def __plt_rwm_fpd3d(obs_dens, absorption, x_range, color="red", marker="-"):
+    external_multiplier = obs_dens * absorption / (4 * np.pi)
+    internal_multiplier = (1 - absorption) * obs_dens
+    exp_mult_1 = np.sqrt(1 - np.square(1 - absorption)) * obs_dens
+    exp_mult_2 = -1 * (1 - np.square(1 - absorption)) * obs_dens
+    first_component = internal_multiplier * np.multiply(x_range, np.exp(-1 * exp_mult_1 * x_range))
     second_component = np.exp(exp_mult_2 * x_range)
     g_r = external_multiplier * np.multiply(np.add(first_component, second_component), x_range)
     rwm_y = 10 * np.log10(g_r / (absorption * obs_dens)) + 30
