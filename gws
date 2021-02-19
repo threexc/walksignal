@@ -78,8 +78,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs.resize(300, 200)
         self.tabs.addTab(self.tab1, "Models")
         self.tabs.addTab(self.tab2, "Tower Map")
-        #self.tab1.layout = QtWidgets.QVBoxLayout(self)
-        #self.tab1.layout.addWidget(self.model_widget)
 
     def setupSliders(self):
         self.density_box = QtWidgets.QHBoxLayout()
@@ -238,7 +236,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.absorption = self.absorption_slider.value() / 100.0
         self.density_value_label.setText(str(self.density))
         self.absorption_value_label.setText(str(self.absorption))
-        print("density {0}, absorption {1}".format(self.density, self.absorption))
         if self.towerset:
             self.updatePlotData()
 
