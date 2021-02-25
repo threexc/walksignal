@@ -43,6 +43,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model_widget = pg.PlotWidget()
         self.model_widget.setBackground('w')
         self.model_widget.showGrid(x=True, y=True, alpha=0.5)
+        self.model_widget.setYRange(-200, 20)
         self.pen = pg.mkPen(color=(255, 0, 0))
 
         self.data_line = self.model_widget.plot(self.x, self.y, pen=self.pen)
