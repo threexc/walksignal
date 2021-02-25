@@ -31,7 +31,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tower_x = None
         self.tower_y = None
         self.cbar = None
-        self.canvas = pt.MplCanvas(self, width=5, height=4, dpi=100)
+        self.map_canvas = pt.MplCanvas(self, width=5, height=4, dpi=100)
 
         self.x = list(range(100))  # 100 time points
         self.y = [randint(0,100) for _ in range(100)]  # 100 data points
@@ -74,7 +74,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs = QtWidgets.QTabWidget()
         self.tab1 = self.model_widget
         self.tab2 = QtWidgets.QWidget()
-        self.tab2 = self.canvas
+        self.tab2 = self.map_canvas
         self.tabs.resize(300, 200)
         self.tabs.addTab(self.tab1, "Models")
         self.tabs.addTab(self.tab2, "Tower Map")
@@ -253,21 +253,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if self.cbar:
             self.cbar.remove()
-        self.canvas.axes.cla()
-        divider = make_axes_locatable(self.canvas.axes)
+        self.map_canvas.axes.cla()
+        divider = make_axes_locatable(self.map_canvas.axes)
         cax = divider.append_axes("right", size="5%", pad=0.1)
-        self.canvas.axes.imshow(self.towerset.plot_map, zorder=0, extent = self.towerset.map_bbox[0], aspect="equal")
-        powerscatter = self.canvas.axes.scatter(lon_series, lat_series, zorder=1, alpha=1.0, s=20, c=self.tower.signal_power, cmap=self.towerset.cm)
-        self.canvas.axes.scatter(float(self.tower.lon), float(self.tower.lat), zorder=1, alpha=1.0, s=20, color="blue")
-        self.canvas.axes.set_xlim(self.towerset.map_bbox[0][0], self.towerset.map_bbox[0][1])
-        self.canvas.axes.set_ylim(self.towerset.map_bbox[0][2], self.towerset.map_bbox[0][3])
-        self.canvas.axes.set_xlabel("Longitude")
-        self.canvas.axes.set_ylabel("Latitude")
-        self.canvas.axes.set_title("Signal Power vs Position")
-        self.cbar = self.canvas.fig.colorbar(powerscatter, cax=cax)
+        self.map_canvas.axes.imshow(self.towerset.plot_map, zorder=0, extent = self.towerset.map_bbox[0], aspect="equal")
+        powerscatter = self.map_canvas.axes.scatter(lon_series, lat_series, zorder=1, alpha=1.0, s=20, c=self.tower.signal_power, cmap=self.towerset.cm)
+        self.map_canvas.axes.scatter(float(self.tower.lon), float(self.tower.lat), zorder=1, alpha=1.0, s=20, color="blue")
+        self.map_canvas.axes.set_xlim(self.towerset.map_bbox[0][0], self.towerset.map_bbox[0][1])
+        self.map_canvas.axes.set_ylim(self.towerset.map_bbox[0][2], self.towerset.map_bbox[0][3])
+        self.map_canvas.axes.set_xlabel("Longitude")
+        self.map_canvas.axes.set_ylabel("Latitude")
+        self.map_canvas.axes.set_title("Signal Power vs Position")
+        self.cbar = self.map_canvas.fig.colorbar(powerscatter, cax=cax)
         self.cbar.ax.set_ylabel("Signal Power (dBm)", rotation=270, labelpad=10)
 
-        self.canvas.draw()
+        self.map_canvas.draw()
 
     def plotTowerData(self):
         self.tower_data_line.setData(self.tower.distances, self.tower.signal_power, symbol='o')
