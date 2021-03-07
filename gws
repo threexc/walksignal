@@ -63,7 +63,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setupTabs()
 
         self.main_layout = QtWidgets.QHBoxLayout()
-        #self.main_layout.addWidget(self.model_widget)
         self.main_layout.addWidget(self.tabs)
         self.main_layout.addWidget(self.sidebarWidget)
         self.main_layout.setStretch(0, 200)
@@ -84,8 +83,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs.addTab(self.tab3, "Path Loss")
 
     def setupSliders(self):
+        self.slider_box = QtWidgets.QVBoxLayout()
         self.density_box = QtWidgets.QHBoxLayout()
         self.absorption_box = QtWidgets.QHBoxLayout()
+
+        self.slider_title = QtWidgets.QLabel('Model Parameters', self)
+        self.slider_title.setFont(QtGui.QFont('Arial', 14))
 
         self.density_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal, self)
         self.density_slider.setRange(1, 100)
@@ -110,14 +113,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.absorption_box.addWidget(self.absorption_slider_label)
         self.absorption_box.addWidget(self.absorption_slider)
         self.absorption_box.addWidget(self.absorption_value_label)
+
+        self.slider_box.addWidget(self.slider_title)
+        self.slider_box.addLayout(self.density_box)
+        self.slider_box.addLayout(self.absorption_box)
+        self.slider_box.setAlignment(QtCore.Qt.AlignTop)
         print("Set up density_slider")
         print("Set up absorption_slider")
 
     def setupComboBoxes(self):
+        self.tower_box = QtWidgets.QVBoxLayout()
         self.cellid_box = QtWidgets.QHBoxLayout()
         self.mcc_box = QtWidgets.QHBoxLayout()
         self.mnc_box = QtWidgets.QHBoxLayout()
         self.lac_box = QtWidgets.QHBoxLayout()
+
+        self.combo_title = QtWidgets.QLabel('Tower Selection', self)
+        self.combo_title.setFont(QtGui.QFont('Arial', 14))
 
         self.cellid_label = QtWidgets.QLabel('Cell ID', self)
         self.mcc_label = QtWidgets.QLabel('MCC', self)
@@ -131,13 +143,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.cellid_box.addWidget(self.cellid_label)
         self.cellid_box.addWidget(self.cellid_combo)
-
         self.mcc_box.addWidget(self.mcc_label)
         self.mcc_box.addWidget(self.mcc_combo)
         self.mnc_box.addWidget(self.mnc_label)
         self.mnc_box.addWidget(self.mnc_combo)
         self.lac_box.addWidget(self.lac_label)
         self.lac_box.addWidget(self.lac_combo)
+        
+        self.tower_box.addWidget(self.combo_title)
+        self.tower_box.addLayout(self.cellid_box)
+        self.tower_box.addLayout(self.mcc_box)
+        self.tower_box.addLayout(self.mnc_box)
+        self.tower_box.addLayout(self.lac_box)
         print("Set up combo boxes")
 
     def setupLoadButtons(self):
@@ -170,12 +187,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def setupSideBar(self):
         self.sidebar = QtWidgets.QVBoxLayout()
         self.sidebar.addWidget(self.data_load_button)
-        self.sidebar.addLayout(self.density_box)
-        self.sidebar.addLayout(self.absorption_box)
-        self.sidebar.addLayout(self.cellid_box)
-        self.sidebar.addLayout(self.mcc_box)
-        self.sidebar.addLayout(self.mnc_box)
-        self.sidebar.addLayout(self.lac_box)
+        self.sidebar.addLayout(self.slider_box)
+        self.sidebar.addLayout(self.tower_box)
         self.sidebar.addWidget(self.tower_load_button)
         self.sidebarWidget = QtWidgets.QWidget()
         self.sidebarWidget.setLayout(self.sidebar)
