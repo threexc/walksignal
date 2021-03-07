@@ -158,9 +158,6 @@ class MainWindow(QtWidgets.QMainWindow):
         print("Set up combo boxes")
 
     def setupLoadButtons(self):
-        self.data_load_button = QtWidgets.QPushButton('Load Dataset', self)
-        self.data_load_button.clicked.connect(self.setDataSource)
-
         self.tower_load_button = QtWidgets.QPushButton('Load Tower Data', self)
         self.tower_load_button.clicked.connect(self.loadTowerData)
         print("Set up buttons")
@@ -170,6 +167,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.selectFile.setShortcut('Ctrl+O')
         self.selectFile.setStatusTip('Select New File')
         self.selectFile.triggered.connect(self.showFileDialog)
+        self.selectFile.triggered.connect(self.setDataSource)
 
         self.referenceFile = QtWidgets.QAction(QtGui.QIcon('open.png'), 'Select Reference File', self)
         self.referenceFile.setShortcut('Ctrl+R')
@@ -186,7 +184,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setupSideBar(self):
         self.sidebar = QtWidgets.QVBoxLayout()
-        self.sidebar.addWidget(self.data_load_button)
         self.sidebar.addLayout(self.slider_box)
         self.sidebar.addLayout(self.tower_box)
         self.sidebar.addWidget(self.tower_load_button)
