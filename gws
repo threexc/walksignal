@@ -60,14 +60,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setupLoadButtons()
         self.setupFileMenuButtons()
         self.setupMenuBar()
-        self.setupSideBar()
+        self.setupPlotSidebar()
+        self.setupDataSidebar()
         self.setupTabs()
 
         self.main_layout = QtWidgets.QHBoxLayout()
-        self.main_layout.addWidget(self.tabs)
-        self.main_layout.addWidget(self.sidebarWidget)
-        self.main_layout.setStretch(0, 200)
-        self.main_layout.setStretch(1, 80)
+        self.main_layout.addWidget(self.dataSidebarWidget, 1)
+        self.main_layout.addWidget(self.tabs, 3)
+        self.main_layout.addWidget(self.plotSidebarWidget, 1)
         self.model_widget = QtWidgets.QWidget()
         self.model_widget.setLayout(self.main_layout)
         self.setCentralWidget(self.model_widget)
@@ -132,6 +132,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setupComboBoxes(self):
         self.tower_box = QtWidgets.QVBoxLayout()
+        self.tower_box.setAlignment(QtCore.Qt.AlignTop)
         self.cellid_box = QtWidgets.QHBoxLayout()
         self.mcc_box = QtWidgets.QHBoxLayout()
         self.mnc_box = QtWidgets.QHBoxLayout()
@@ -191,13 +192,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fileMenu.addAction(self.referenceFile)
         print("Set up menu bar")
 
-    def setupSideBar(self):
-        self.sidebar = QtWidgets.QVBoxLayout()
-        self.sidebar.addLayout(self.model_box)
-        self.sidebar.addLayout(self.tower_box)
-        self.sidebar.addWidget(self.tower_load_button)
-        self.sidebarWidget = QtWidgets.QWidget()
-        self.sidebarWidget.setLayout(self.sidebar)
+    def setupPlotSidebar(self):
+        self.plotSidebar = QtWidgets.QVBoxLayout()
+        self.plotSidebar.addLayout(self.model_box)
+        self.plotSidebarWidget = QtWidgets.QWidget()
+        self.plotSidebarWidget.setLayout(self.plotSidebar)
+        print("Set up sidebar")
+
+    def setupDataSidebar(self):
+        self.dataSidebar = QtWidgets.QVBoxLayout()
+        self.dataSidebar.addLayout(self.tower_box)
+        self.dataSidebar.addWidget(self.tower_load_button)
+        self.dataSidebarWidget = QtWidgets.QWidget()
+        self.dataSidebarWidget.setLayout(self.dataSidebar)
         print("Set up sidebar")
 
     def showFileDialog(self):
