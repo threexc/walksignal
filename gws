@@ -55,7 +55,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model_widget.setLabel('left', "Power (dBm)", **self.styles)
         self.model_widget.setLabel('bottom', "Distance (m)", **self.styles)
 
-        self.setupSliders()
+        self.setupModelParameters()
         self.setupComboBoxes()
         self.setupLoadButtons()
         self.setupFileMenuButtons()
@@ -83,8 +83,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs.addTab(self.tab2, "Tower Map")
         self.tabs.addTab(self.tab3, "Path Loss")
 
-    def setupSliders(self):
-        self.slider_box = QtWidgets.QVBoxLayout()
+    def setupModelParameters(self):
+        self.model_box = QtWidgets.QVBoxLayout()
         self.density_box = QtWidgets.QHBoxLayout()
         self.absorption_box = QtWidgets.QHBoxLayout()
 
@@ -115,10 +115,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.absorption_box.addWidget(self.absorption_slider)
         self.absorption_box.addWidget(self.absorption_value_label)
 
-        self.slider_box.addWidget(self.slider_title)
-        self.slider_box.addLayout(self.density_box)
-        self.slider_box.addLayout(self.absorption_box)
-        self.slider_box.setAlignment(QtCore.Qt.AlignTop)
+        self.radio_2d = QtWidgets.QRadioButton("2D Model", self)
+        self.radio_3d = QtWidgets.QRadioButton("3D Model", self)
+        self.radio_3d.setChecked(True)
+        self.radio_2d.toggled.connect(self.updatePlotData)
+        self.radio_3d.toggled.connect(self.updatePlotData)
+
+        self.model_box.addWidget(self.slider_title)
+        self.model_box.addWidget(self.radio_2d)
+        self.model_box.addWidget(self.radio_3d)
+        self.model_box.addLayout(self.density_box)
+        self.model_box.addLayout(self.absorption_box)
+        self.model_box.setAlignment(QtCore.Qt.AlignTop)
         print("Set up density_slider")
         print("Set up absorption_slider")
 
@@ -185,7 +193,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setupSideBar(self):
         self.sidebar = QtWidgets.QVBoxLayout()
-        self.sidebar.addLayout(self.slider_box)
+        self.sidebar.addLayout(self.model_box)
         self.sidebar.addLayout(self.tower_box)
         self.sidebar.addWidget(self.tower_load_button)
         self.sidebarWidget = QtWidgets.QWidget()
@@ -287,16 +295,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def plotPathLoss(self):
         pass
 
-    def plotTowerData(self):
-        self.tower_data_line.setData(self.tower.distances, self.tower.signal_power, symbol='o')
-
     def updatePlotData(self):
         self.x_range = self.towerset.plotrange
-        self.y_range = eq.gplt_rwm_fpd3d(self.density, self.absorption, self.x_range)
+        if self.radio_2d.isChecked():
+            self.y_range = eq.gplt_rwm_fpd2d(self.density, self.absorption, self.x_range)
+        else:
+            self.y_range = eq.gplt_rwm_fpd3d(self.density, self.absorption, self.x_range)
         self.data_line.setData(self.x_range, self.y_range)
         if self.tower:
-            self.plotTowerData()
-
+            self.tower_data_line.setData(self.tower.distances, self.tower.signal_power, symbol='o')
 
 app = QtWidgets.QApplication(sys.argv)
 w = MainWindow()
