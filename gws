@@ -257,7 +257,7 @@ class MainWindow(QtWidgets.QMainWindow):
         print("Loading tower data...")
         self.tower = self.towerset.tower_list.get_tower_data(self.mcc_combo.currentText(), self.mnc_combo.currentText(), self.lac_combo.currentText(), self.cellid_combo.currentText())
         print("Loaded data for {0} {1} {2} {3}".format(self.tower.mcc, self.tower.mnc, self.tower.lac, self.tower.cellid))
-        self.plotTowerData()
+        self.updatePlotData()
         self.plotTowerMap()
 
     def plotTowerMap(self):
@@ -294,7 +294,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.y_range = pt.gplt_rwm_fpd3d(self.density, self.absorption, self.x_range)
         self.data_line.setData(self.x_range, self.y_range)
         if self.tower:
-            self.tower_data_line.setData(self.tower.distances, self.tower.signal_power, symbol='o')
+            self.plotTowerData()
 
 
 app = QtWidgets.QApplication(sys.argv)
