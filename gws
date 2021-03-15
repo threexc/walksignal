@@ -55,9 +55,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model_widget.setLabel('left', "Power (dBm)", **self.styles)
         self.model_widget.setLabel('bottom', "Distance (m)", **self.styles)
 
-        self.setupModelParameters()
+        self.setupModelControls()
         self.setupTowerControls()
-        self.setupFileMenuButtons()
+        self.setupFileMenu()
         self.setupMenuBar()
         self.setupPlotSidebar()
         self.setupDataSidebar()
@@ -82,7 +82,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs.addTab(self.tab2, "Tower Map")
         self.tabs.addTab(self.tab3, "Path Loss")
 
-    def setupModelParameters(self):
+    def setupModelControls(self):
         self.model_box = QtWidgets.QVBoxLayout()
         self.density_box = QtWidgets.QHBoxLayout()
         self.absorption_box = QtWidgets.QHBoxLayout()
@@ -169,7 +169,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tower_box.setAlignment(QtCore.Qt.AlignTop)
         print("Set up tower controls")
 
-    def setupFileMenuButtons(self):
+    def setupFileMenu(self):
         self.selectFile = QtWidgets.QAction(QtGui.QIcon('open.png'), 'Select File', self)
         self.selectFile.setShortcut('Ctrl+O')
         self.selectFile.setStatusTip('Select New File')
