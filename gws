@@ -56,8 +56,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model_widget.setLabel('bottom', "Distance (m)", **self.styles)
 
         self.setupModelParameters()
-        self.setupComboBoxes()
-        self.setupLoadButtons()
+        self.setupTowerControls()
         self.setupFileMenuButtons()
         self.setupMenuBar()
         self.setupPlotSidebar()
@@ -130,9 +129,8 @@ class MainWindow(QtWidgets.QMainWindow):
         print("Set up density_slider")
         print("Set up absorption_slider")
 
-    def setupComboBoxes(self):
+    def setupTowerControls(self):
         self.tower_box = QtWidgets.QVBoxLayout()
-        self.tower_box.setAlignment(QtCore.Qt.AlignTop)
         self.cellid_box = QtWidgets.QHBoxLayout()
         self.mcc_box = QtWidgets.QHBoxLayout()
         self.mnc_box = QtWidgets.QHBoxLayout()
@@ -159,18 +157,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mnc_box.addWidget(self.mnc_combo)
         self.lac_box.addWidget(self.lac_label)
         self.lac_box.addWidget(self.lac_combo)
+        self.tower_load_button = QtWidgets.QPushButton('Load Tower Data', self)
+        self.tower_load_button.clicked.connect(self.loadTowerData)
         
         self.tower_box.addWidget(self.combo_title)
         self.tower_box.addLayout(self.cellid_box)
         self.tower_box.addLayout(self.mcc_box)
         self.tower_box.addLayout(self.mnc_box)
         self.tower_box.addLayout(self.lac_box)
-        print("Set up combo boxes")
-
-    def setupLoadButtons(self):
-        self.tower_load_button = QtWidgets.QPushButton('Load Tower Data', self)
-        self.tower_load_button.clicked.connect(self.loadTowerData)
-        print("Set up buttons")
+        self.tower_box.addWidget(self.tower_load_button)
+        self.tower_box.setAlignment(QtCore.Qt.AlignTop)
+        print("Set up tower controls")
 
     def setupFileMenuButtons(self):
         self.selectFile = QtWidgets.QAction(QtGui.QIcon('open.png'), 'Select File', self)
