@@ -12,6 +12,7 @@ import time
 import numpy as np
 from random import randint
 import walksignal.data as ds
+import walksignal.equations as eq
 import walksignal.plottools as pt
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -291,7 +292,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def updatePlotData(self):
         self.x_range = self.towerset.plotrange
-        self.y_range = pt.gplt_rwm_fpd3d(self.density, self.absorption, self.x_range)
+        self.y_range = eq.gplt_rwm_fpd3d(self.density, self.absorption, self.x_range)
         self.data_line.setData(self.x_range, self.y_range)
         if self.tower:
             self.plotTowerData()
