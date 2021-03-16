@@ -12,7 +12,7 @@ online services:
 All due credit is given to the maintainers and communities around these tools
 and services.
 
-Example:
+GUI:
 
 ![Downtown Ottawa](example.png?raw=true)
 
@@ -50,6 +50,17 @@ files are created in the same folder with the .pruned extension.
 Example:
 
 `./prune_data data/lacolyoc/OpenCellID_2020*`
+
+### Using gws
+
+Run the following to start the GUI:
+`./gws`
+
+A reference file and a datafile must both be selected. Selecting a
+datafile with the load button automatically loads the dataset for use. 
+
+The plot tab and map tab are both updated when selecting the "Load Tower
+Data" button.
 
 ### Using ws
 
