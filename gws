@@ -132,30 +132,39 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setupFileControls(self):
         self.file_control_box = QtWidgets.QVBoxLayout()
-        self.data_file_box = QtWidgets.QVBoxLayout()
-        self.reference_file_box = QtWidgets.QVBoxLayout()
+        self.load_box = QtWidgets.QVBoxLayout()
+        self.set_data_box = QtWidgets.QVBoxLayout()
+        self.set_reference_box = QtWidgets.QVBoxLayout()
 
         self.file_controls_title = QtWidgets.QLabel('File Selection', self)
         self.file_controls_title.setFont(QtGui.QFont('Arial', 14))
-        self.data_load_button = QtWidgets.QPushButton('Load Dataset', self)
-        self.data_load_button.clicked.connect(self.showFileDialog)
-        self.data_load_button.clicked.connect(self.loadDataSet)
-        self.data_load_text = QtWidgets.QLineEdit('None', self)
-        self.data_load_text.setReadOnly(True)
-        self.reference_load_button = QtWidgets.QPushButton('Load Reference File', self)
-        self.reference_load_button.clicked.connect(self.showReferenceDialog)
-        self.reference_load_text = QtWidgets.QLineEdit('None', self)
-        self.reference_load_text.setReadOnly(True)
 
-        self.data_file_box.addWidget(self.data_load_button)
-        self.data_file_box.addWidget(self.data_load_text)
+        self.load_button = QtWidgets.QPushButton('Load', self)
+        self.load_button.clicked.connect(self.setDataSource)
 
-        self.reference_file_box.addWidget(self.reference_load_button)
-        self.reference_file_box.addWidget(self.reference_load_text)
+        self.set_data_button = QtWidgets.QPushButton('Set Dataset', self)
+        self.set_data_button.clicked.connect(self.showFileDialog)
+
+        self.set_data_text = QtWidgets.QLineEdit('None', self)
+        self.set_data_text.setReadOnly(True)
+
+        self.set_reference_button = QtWidgets.QPushButton('Set Reference', self)
+        self.set_reference_button.clicked.connect(self.showReferenceDialog)
+
+        self.set_reference_text = QtWidgets.QLineEdit('None', self)
+        self.set_reference_text.setReadOnly(True)
+
+        self.load_box.addWidget(self.load_button)
+        self.set_data_box.addWidget(self.set_data_button)
+        self.set_data_box.addWidget(self.set_data_text)
+
+        self.set_reference_box.addWidget(self.set_reference_button)
+        self.set_reference_box.addWidget(self.set_reference_text)
 
         self.file_control_box.addWidget(self.file_controls_title)
-        self.file_control_box.addLayout(self.data_file_box)
-        self.file_control_box.addLayout(self.reference_file_box)
+        self.file_control_box.addLayout(self.load_box)
+        self.file_control_box.addLayout(self.set_data_box)
+        self.file_control_box.addLayout(self.set_reference_box)
         
     def setupTowerControls(self):
         self.tower_box = QtWidgets.QVBoxLayout()
@@ -240,6 +249,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if fname[0]:
             print("Selected datafile {0}".format(fname[0]))
             self.datafile = fname[0]
+            self.set_data_text.setText(str(self.datafile))
 
     def showReferenceDialog(self):
         home_dir = str(Path.home)
@@ -248,11 +258,10 @@ class MainWindow(QtWidgets.QMainWindow):
         if fname[0]:
             print("Selected reference file {0}".format(fname[0]))
             self.reference = fname[0]
-            self.reference_load_text.setText(str(self.reference))
+            self.set_reference_text.setText(str(self.reference))
 
     def setDataSource(self):
         if self.reference and self.datafile:
-            self.data_load_text.setText(str(self.datafile))
             self.loadDataSet()
         elif self.reference:
             print("datafile not selected")
