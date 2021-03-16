@@ -55,6 +55,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model_widget.setLabel('left', "Power (dBm)", **self.styles)
         self.model_widget.setLabel('bottom', "Distance (m)", **self.styles)
 
+        self.setupFileControls()
         self.setupModelControls()
         self.setupTowerControls()
         self.setupFileMenu()
@@ -129,6 +130,33 @@ class MainWindow(QtWidgets.QMainWindow):
         print("Set up density_slider")
         print("Set up absorption_slider")
 
+    def setupFileControls(self):
+        self.file_control_box = QtWidgets.QVBoxLayout()
+        self.data_file_box = QtWidgets.QVBoxLayout()
+        self.reference_file_box = QtWidgets.QVBoxLayout()
+
+        self.file_controls_title = QtWidgets.QLabel('File Selection', self)
+        self.file_controls_title.setFont(QtGui.QFont('Arial', 14))
+        self.data_load_button = QtWidgets.QPushButton('Load Dataset', self)
+        self.data_load_button.clicked.connect(self.showFileDialog)
+        self.data_load_button.clicked.connect(self.loadDataSet)
+        self.data_load_text = QtWidgets.QLineEdit('None', self)
+        self.data_load_text.setReadOnly(True)
+        self.reference_load_button = QtWidgets.QPushButton('Load Reference File', self)
+        self.reference_load_button.clicked.connect(self.showReferenceDialog)
+        self.reference_load_text = QtWidgets.QLineEdit('None', self)
+        self.reference_load_text.setReadOnly(True)
+
+        self.data_file_box.addWidget(self.data_load_button)
+        self.data_file_box.addWidget(self.data_load_text)
+
+        self.reference_file_box.addWidget(self.reference_load_button)
+        self.reference_file_box.addWidget(self.reference_load_text)
+
+        self.file_control_box.addWidget(self.file_controls_title)
+        self.file_control_box.addLayout(self.data_file_box)
+        self.file_control_box.addLayout(self.reference_file_box)
+        
     def setupTowerControls(self):
         self.tower_box = QtWidgets.QVBoxLayout()
         self.cellid_box = QtWidgets.QHBoxLayout()
@@ -136,8 +164,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mnc_box = QtWidgets.QHBoxLayout()
         self.lac_box = QtWidgets.QHBoxLayout()
 
-        self.combo_title = QtWidgets.QLabel('Tower Selection', self)
-        self.combo_title.setFont(QtGui.QFont('Arial', 14))
+        self.tower_combo_title = QtWidgets.QLabel('Tower Selection', self)
+        self.tower_combo_title.setFont(QtGui.QFont('Arial', 14))
 
         self.cellid_label = QtWidgets.QLabel('Cell ID', self)
         self.mcc_label = QtWidgets.QLabel('MCC', self)
@@ -160,7 +188,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tower_load_button = QtWidgets.QPushButton('Load Tower Data', self)
         self.tower_load_button.clicked.connect(self.loadTowerData)
         
-        self.tower_box.addWidget(self.combo_title)
+        self.tower_box.addWidget(self.tower_combo_title)
         self.tower_box.addLayout(self.cellid_box)
         self.tower_box.addLayout(self.mcc_box)
         self.tower_box.addLayout(self.mnc_box)
@@ -198,6 +226,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setupDataSidebar(self):
         self.dataSidebar = QtWidgets.QVBoxLayout()
+        self.dataSidebar.addLayout(self.file_control_box)
         self.dataSidebar.addLayout(self.tower_box)
         self.dataSidebar.addWidget(self.tower_load_button)
         self.dataSidebarWidget = QtWidgets.QWidget()
@@ -219,9 +248,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if fname[0]:
             print("Selected reference file {0}".format(fname[0]))
             self.reference = fname[0]
+            self.reference_load_text.setText(str(self.reference))
 
     def setDataSource(self):
         if self.reference and self.datafile:
+            self.data_load_text.setText(str(self.datafile))
             self.loadDataSet()
         elif self.reference:
             print("datafile not selected")
